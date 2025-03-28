@@ -7,4 +7,5 @@ requires-python = ">=3.13"
 dependencies = [
     "browser-use>=0.1.40",
     "flask>=3.1.0",
+    "nest-asyncio>=1.6.0",
 ]
