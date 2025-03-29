@@ -153,13 +153,14 @@ def main():
     then run our Flask server so front-end can retrieve QR data.
     """
     global browser_thread
-    
+
+    # Start Flask server WITHOUT debug mode
+    app.run(host="127.0.0.1", port=5000, debug=False)
+
     # Run browser automation in a separate thread
     browser_thread = threading.Thread(target=run_browser_async, daemon=True)
     browser_thread.start()
 
-    # Start Flask server WITHOUT debug mode
-    app.run(host="127.0.0.1", port=5000, debug=False)
 
 if __name__ == "__main__":
     # Required for multiprocessing on Windows
