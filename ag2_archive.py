@@ -46,13 +46,14 @@ class DriverLicenseBooking(BaseModel):
 
 llm_config = LLMConfig(api_type="openai", model="gpt-4o-mini", response_format=DriverLicenseBooking )
 
-with llm_config:
-    driver_license_agent_agent = ConversableAgent(
-        name="driver_license_agent",
-        system_message=driver_license_agent_system_message,
-        is_termination_msg=lambda x: "confirm" in (x.get("content", "") or "").lower(),
-        human_input_mode="NEVER"
-    )
+
+driver_license_agent_agent = ConversableAgent(
+    name="driver_license_agent",
+    system_message=driver_license_agent_system_message,
+    is_termination_msg=lambda x: "confirm" in (x.get("content", "") or "").lower(),
+    llm_config=llm_config,
+    human_input_mode="NEVER"
+)
 
 # 1. Create our "human" agent
 the_human = ConversableAgent(
