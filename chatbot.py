@@ -227,6 +227,7 @@ if __name__ == "__main__":
     print("Type 'exit' to end the conversation\n")
     
     while True:
+        # todo: what is this input? what does §you§ mean here?
         user_input = input("You: ")
         if user_input.lower() == 'exit':
             break
@@ -240,6 +241,7 @@ if __name__ == "__main__":
             if confirmation.lower() == 'yes':
                 # backend_response = bot.send_to_backend("https://api.example.com/register")
                 # print(f"\nBackend Response: {json.dumps(backend_response, indent=2)}")
+                # todo(Guisong): this never gets called
                 print("Backend response:")
                 break
             else:

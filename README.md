@@ -59,7 +59,7 @@ ChatBot:
 2. this bot is asking questions one by one? would it work that it takes all information at once?
 3. Location is wrong -> it does not need say locations, the users shall know the locations by themselves, just verify if that is the case
 4. after confirm, it does not have to print all the information out
-
+5. /Users/guisong/fun/trafikverket/chatbot.py:182: PydanticDeprecatedSince20: The `dict` method is deprecated; use `model_dump` instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.11/migration/ -> pydandic changes
 
 
 
