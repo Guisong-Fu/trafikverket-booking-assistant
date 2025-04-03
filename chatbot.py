@@ -9,6 +9,9 @@ import json
 import requests
 from datetime import datetime
 
+from dotenv import load_dotenv
+load_dotenv()
+
 # Define the data model for exam requests
 class ExamRequest(BaseModel):
     license_type: str = Field(None, description="Type of license (e.g., A, A1, B, BE)")
@@ -235,8 +238,9 @@ if __name__ == "__main__":
         if not bot._get_missing_info() and "Is this information correct?" in response:
             confirmation = input("You: ")
             if confirmation.lower() == 'yes':
-                backend_response = bot.send_to_backend("https://api.example.com/register")
-                print(f"\nBackend Response: {json.dumps(backend_response, indent=2)}")
+                # backend_response = bot.send_to_backend("https://api.example.com/register")
+                # print(f"\nBackend Response: {json.dumps(backend_response, indent=2)}")
+                print("Backend response:")
                 break
             else:
                 # Reset collected info and continue

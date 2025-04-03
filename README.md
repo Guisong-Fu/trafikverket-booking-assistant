@@ -51,3 +51,96 @@ Attached are 3 sample snippets using langchain, please take it for reference.
 
 Please make sure to use latest version of LangChain, and the code shall be as clear as possible. Please keep in mind that, in a later stage we will expose this as API using FastAPI and further integrate with Streamlit and later with a self build front-end website.
 
+
+
+ChatBot:
+
+1. https://python.langchain.com/docs/versions/migrating_memory/ -> memory drprection
+2. this bot is asking questions one by one? would it work that it takes all information at once?
+3. Location is wrong -> it does not need say locations, the users shall know the locations by themselves, just verify if that is the case
+4. after confirm, it does not have to print all the information out
+
+
+
+
+
+
+
+
+
+
+RAW Log:
+uv run chatbot.py
+/Users/guisong/fun/trafikverket/chatbot.py:91: LangChainDeprecationWarning: Please see the migration guide at: https://python.langchain.com/docs/versions/migrating_memory/
+  self.memory = ConversationBufferMemory(return_messages=True)
+Driver's License Exam Registration Bot
+Type 'exit' to end the conversation
+
+You: Hello 
+/Users/guisong/fun/trafikverket/chatbot.py:182: PydanticDeprecatedSince20: The `dict` method is deprecated; use `model_dump` instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.11/migration/
+  "collected_info": self.collected_info.dict(),
+Bot: Welcome! I'm here to help you register for your driver's license exam. Let's start with the first piece of information I need. 
+
+Could you please provide me with the type of license you are applying for? It could be A, A1, A2, B, B96, BE, Bus, Goods, C, C1, C1E, CE, D, D1, D1E, DE, Bus, Lorry, Train driver, Taxi, AM, Tractor, ADR, APV, or VVH.
+You: A
+/Users/guisong/fun/trafikverket/chatbot.py:182: PydanticDeprecatedSince20: The `dict` method is deprecated; use `model_dump` instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.11/migration/
+  "collected_info": self.collected_info.dict(),
+Bot: Great choice! Now, could you please let me know if you are registering for a practical driving test or a theory test?
+You: Theory please 
+/Users/guisong/fun/trafikverket/chatbot.py:182: PydanticDeprecatedSince20: The `dict` method is deprecated; use `model_dump` instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.11/migration/
+  "collected_info": self.collected_info.dict(),
+Bot: Got it! Next, I need to know if you prefer a manual or automatic transmission for your test. Which one would you like to choose?
+You: manual 
+/Users/guisong/fun/trafikverket/chatbot.py:182: PydanticDeprecatedSince20: The `dict` method is deprecated; use `model_dump` instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.11/migration/
+  "collected_info": self.collected_info.dict(),
+Bot: Thank you for confirming that you prefer a manual transmission. 
+
+Next, I need to know the location preferences for your test. You can choose up to 4 locations from the provided list. 
+
+The available locations are:
+1. Location A
+2. Location B
+3. Location C
+4. Location D
+
+Please provide me with your preferred location(s).
+You: Location A 
+/Users/guisong/fun/trafikverket/chatbot.py:182: PydanticDeprecatedSince20: The `dict` method is deprecated; use `model_dump` instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.11/migration/
+  "collected_info": self.collected_info.dict(),
+Bot: Thank you for confirming Location A as your preferred test location.
+
+Lastly, could you please specify your time preference? You can provide specific times or simply state "earliest available". If you have specific times in mind, feel free to share them with me.
+You: as earlier as possible 
+/Users/guisong/fun/trafikverket/chatbot.py:182: PydanticDeprecatedSince20: The `dict` method is deprecated; use `model_dump` instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.11/migration/
+  "collected_info": self.collected_info.dict(),
+Bot: Thank you for providing all the necessary information. Here is a summary of your registration details:
+
+- License Type: A
+- Test Type: Theory test
+- Transmission Type: Manual
+- Location: Location A
+- Time Preference: Earliest available
+
+Could you please confirm if the information is correct?
+You: confirm 
+/Users/guisong/fun/trafikverket/chatbot.py:182: PydanticDeprecatedSince20: The `dict` method is deprecated; use `model_dump` instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.11/migration/
+  "collected_info": self.collected_info.dict(),
+Bot: Great! Your registration details have been successfully confirmed. 
+
+Here is the summary of the information you provided in JSON format:
+```json
+{
+    "license_type": "A",
+    "test_type": "Theory test",
+    "transmission_type": "Manual",
+    "location": ["Location A"],
+    "time_preference": ["Earliest available"],
+    "other": null
+}
+```
+
+If you need any further assistance or have any more details to add, feel free to let me know. Good luck with your theory test!
+You: ^CTraceback (most recent call last):
+  File "/Users/guisong/fun/trafikverket/chatbot.py", line 230, in <module>
+    user_input = input("You: ")
+KeyboardInterrupt
