@@ -81,9 +81,11 @@ class BrowserService:
                     # Check for successful login by waiting for the logout button
                     try:
                         print("Checking for authentication...")
-                        await page.wait_for_selector("[data-bs-toggle='dropdown']", timeout=3000)
-                        button = await page.query_selector("[data-bs-toggle='dropdown']")
+                        await page.wait_for_selector("#desktop-logout-button", timeout=30000)
+                        print("Found logout button")
+                        button = await page.query_selector("#desktop-logout-button")
                         if button:
+                            print("Button found")
                             text = await button.text_content()
                             if "Logga ut" in text:
                                 print("Authentication successful!")

@@ -167,6 +167,7 @@ if True:
     
     # Initial QR code display
     if st.session_state.qr_image_base64 is None:
+        print("Updating QR code display")
         update_qr_display()
     
     # Set up auto-refresh using Streamlit's auto-refresh feature
