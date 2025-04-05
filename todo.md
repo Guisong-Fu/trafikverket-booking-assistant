@@ -1,3 +1,9 @@
+04-05:
+1. langchain prompt needs to be revised -> no need to double check with user
+2. 
+
+
+
 1. use browser-use to do after work
     a. choose test type, location, language and etc. -> natrual language part
     b. output -> if there is such slot, do what? if no, do what?
