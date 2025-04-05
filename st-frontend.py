@@ -22,6 +22,10 @@ if 'show_qr' not in st.session_state:
     st.session_state.show_qr = False
 if 'auth_complete' not in st.session_state:
     st.session_state.auth_complete = False
+if 'qr_image_base64' not in st.session_state:
+    st.session_state.qr_image_base64 = None
+if 'last_auth_check' not in st.session_state:
+    st.session_state.last_auth_check = 0
 
 # Sample hints
 HINTS = [
@@ -127,26 +131,36 @@ if st.session_state.confirmation_mode:
         st.button("No", on_click=handle_confirmation, args=(False,))
 
 # QR Code section
-if st.session_state.show_qr:
+# if st.session_state.show_qr:
+if True:
     st.write("---")
     st.subheader("Authentication")
     
-    # Get QR code
-    response = requests.get(f"{API_BASE_URL}/api/browser/qr")
-    if response.status_code == 200:
-        data = response.json()
-        if data["success"] and data["qr_image_base64"]:
-            # Display QR code
-            qr_image = Image.open(io.BytesIO(base64.b64decode(data["qr_image_base64"])))
-            st.image(qr_image, caption="Scan this QR code with your BankID app")
-            
-            # Check authentication status
+    # Get QR code if we don't have one yet
+    if st.session_state.qr_image_base64 is None:
+        print("Getting QR code")
+        response = requests.get(f"{API_BASE_URL}/api/browser/qr")
+        print(response.json())
+        if response.status_code == 200:
+            data = response.json()
+            if data["success"] and data["qr_image_base64"]:
+                st.session_state.qr_image_base64 = data["qr_image_base64"]
+            else:
+                st.error("Failed to get QR code. Please try again.")
+    
+    # Display QR code if we have one
+    if st.session_state.qr_image_base64:
+        qr_image = Image.open(io.BytesIO(base64.b64decode(st.session_state.qr_image_base64)))
+        st.image(qr_image, caption="Scan this QR code with your BankID app")
+        
+        # Check authentication status every 2 seconds
+        current_time = time.time()
+        if current_time - st.session_state.last_auth_check > 2:
+            st.session_state.last_auth_check = current_time
             if check_auth_status():
                 st.success("Authentication successful! Starting booking process...")
                 st.session_state.show_qr = False
+                st.session_state.qr_image_base64 = None
             else:
                 st.info("Waiting for authentication...")
-                time.sleep(2)  # Poll every 2 seconds
                 st.experimental_rerun()
-        else:
-            st.error("Failed to get QR code. Please try again.")

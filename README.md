@@ -1,3 +1,17 @@
+```
+uv run uvicorn app.main:app --reload
+
+uv run streamlit run st-frontend.py
+```
+
+
+
+
+
+
+
+
+
 https://github.com/gauravdhiman/browser-use-fastapi-docker-server
 
 

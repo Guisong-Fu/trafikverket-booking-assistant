@@ -22,16 +22,21 @@ class BrowserService:
             browser_config = BrowserConfig()
             browser = Browser(config=browser_config)
             self.browser_context = BrowserContext(browser=browser)
-            await self.browser_context.initialize()
+            await self.browser_context.get_session()
 
+    # todo: the QR code refreshes dynamically, so we need to get it every time
     async def get_qr_code(self):
+
+        print("Getting QR code")
         if not self.browser_context:
             await self.initialize_browser()
 
+        print("Navigating to Trafikverket booking page")   
         page = await self.browser_context.get_current_page()
         
         # Navigate to Trafikverket booking page
         await page.goto("https://fp.trafikverket.se/Boka/#/")
+        
         
         # Click login button
         await page.wait_for_selector("text=Logga in", timeout=15000)
@@ -74,12 +79,15 @@ class BrowserService:
 
         # Create and run the agent with the browser context
         agent = Agent(
+            # task=f"""
+            # 1. Click book test
+            # 2. choose {exam_request['license_type']} type of exam
+            # 3. choose {exam_request['test_type']}
+            # 4. choose {', '.join(exam_request['location'])} as test location
+            # 5. If there is a slot available in the preferred time, book it
+            # """,
             task=f"""
-            1. Click book test
-            2. choose {exam_request['license_type']} type of exam
-            3. choose {exam_request['test_type']}
-            4. choose {', '.join(exam_request['location'])} as test location
-            5. If there is a slot available in the preferred time, book it
+            Click book test
             """,
             llm=self.llm,
             browser_context=self.browser_context
