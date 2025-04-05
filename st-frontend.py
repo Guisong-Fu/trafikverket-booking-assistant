@@ -136,31 +136,41 @@ if True:
     st.write("---")
     st.subheader("Authentication")
     
-    # Get QR code if we don't have one yet
-    if st.session_state.qr_image_base64 is None:
-        print("Getting QR code")
+    # Create a placeholder for the QR code
+    qr_placeholder = st.empty()
+    status_placeholder = st.empty()
+    
+    # Function to update the QR code display
+    def update_qr_display():
         response = requests.get(f"{API_BASE_URL}/api/browser/qr")
-        print(response.json())
+        print("Response", response.json())
         if response.status_code == 200:
             data = response.json()
             if data["success"] and data["qr_image_base64"]:
-                st.session_state.qr_image_base64 = data["qr_image_base64"]
+                # Update the QR code image
+                qr_image = Image.open(io.BytesIO(base64.b64decode(data["qr_image_base64"])))
+                qr_placeholder.image(qr_image, caption="Scan this QR code with your BankID app")
+                
+                # Check authentication status
+                if data["auth_complete"]:
+                    status_placeholder.success("Authentication successful! Starting booking process...")
+                    st.session_state.show_qr = False
+                    st.session_state.qr_image_base64 = None
+                    return True
+                else:
+                    status_placeholder.info("Waiting for authentication...")
+                    return False
             else:
-                st.error("Failed to get QR code. Please try again.")
+                status_placeholder.error("Failed to get QR code. Please try again.")
+                return False
+        return False
     
-    # Display QR code if we have one
-    if st.session_state.qr_image_base64:
-        qr_image = Image.open(io.BytesIO(base64.b64decode(st.session_state.qr_image_base64)))
-        st.image(qr_image, caption="Scan this QR code with your BankID app")
-        
-        # Check authentication status every 2 seconds
-        current_time = time.time()
-        if current_time - st.session_state.last_auth_check > 2:
-            st.session_state.last_auth_check = current_time
-            if check_auth_status():
-                st.success("Authentication successful! Starting booking process...")
-                st.session_state.show_qr = False
-                st.session_state.qr_image_base64 = None
-            else:
-                st.info("Waiting for authentication...")
-                st.experimental_rerun()
+    # Initial QR code display
+    if st.session_state.qr_image_base64 is None:
+        update_qr_display()
+    
+    # Set up auto-refresh using Streamlit's auto-refresh feature
+    if not st.session_state.get("auth_complete", False):
+        # This will refresh the page every 2 seconds
+        time.sleep(2)
+        st.rerun()

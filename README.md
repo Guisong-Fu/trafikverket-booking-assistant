@@ -6,6 +6,51 @@ uv run streamlit run st-frontend.py
 
 
 
+archive code
+```
+    async def get_qr_code(self):
+        print("Getting QR code")
+        if not self.browser_context:
+            await self.initialize_browser()
+
+        print("Navigating to Trafikverket booking page")   
+        page = await self.browser_context.get_current_page()
+        
+        # Navigate to Trafikverket booking page
+        await page.goto("https://fp.trafikverket.se/Boka/#/")
+        
+        # Click login button
+        await page.wait_for_selector("text=Logga in", timeout=15000)
+        await page.click("text=Logga in")
+        
+        # Click continue button
+        await page.wait_for_selector("text=Fortsätt", timeout=15000)
+        await page.click("text=Fortsätt")
+        
+        # Wait for QR code
+        await page.wait_for_selector(".qrcode", timeout=20000)
+        
+        # Capture QR code
+        qr_element = await page.query_selector(".qrcode")
+        if qr_element:
+            # Always get a fresh screenshot of the QR code
+            qr_bytes = await qr_element.screenshot()
+            self.current_qr_base64 = base64.b64encode(qr_bytes).decode("utf-8")
+
+            # Check for successful login
+            # try:
+            #     await page.wait_for_selector("#desktop-logout-button", timeout=30000)
+            #     self.auth_complete = True
+            # except:
+            #     self.auth_complete = False
+        
+        return {
+            "success": True,
+            "qr_image_base64": self.current_qr_base64,
+            "auth_complete": self.auth_complete
+        }
+```
+
 
 
 
