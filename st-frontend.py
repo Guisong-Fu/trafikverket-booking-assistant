@@ -1,5 +1,13 @@
 import streamlit as st
-from typing import List, Optional
+import requests
+import base64
+from PIL import Image
+import io
+import time
+import json
+
+# API configuration
+API_BASE_URL = "http://localhost:8000"
 
 # Initialize session state variables
 if 'chat_history' not in st.session_state:
@@ -10,8 +18,12 @@ if 'confirmation_mode' not in st.session_state:
     st.session_state.confirmation_mode = False
 if 'confirmation_message' not in st.session_state:
     st.session_state.confirmation_message = ""
+if 'show_qr' not in st.session_state:
+    st.session_state.show_qr = False
+if 'auth_complete' not in st.session_state:
+    st.session_state.auth_complete = False
 
-# Sample hints - these would come from your backend later
+# Sample hints
 HINTS = [
     "I want to book B driver license test in Uppsala, as earlier as possible",
     "I want to book B driver license test in Uppsala, every Tuesday morning would be good",
@@ -26,23 +38,54 @@ def handle_chat_submit():
         # Add user message to chat history
         st.session_state.chat_history.append({"role": "user", "content": st.session_state.current_input})
         
-        # Here you would normally process the input with your AI agent
-        # For now, we'll just simulate the agent behavior
-        st.session_state.confirmation_mode = True
-        st.session_state.confirmation_message = f"Is my understanding correct, that you want to {st.session_state.current_input.lower()}?"
+        # Send message to backend
+        response = requests.post(
+            f"{API_BASE_URL}/api/chat/message",
+            json={
+                "message": st.session_state.current_input,
+                "chat_history": st.session_state.chat_history
+            }
+        )
+        
+        if response.status_code == 200:
+            data = response.json()
+            st.session_state.chat_history = data["chat_history"]
+            st.session_state.confirmation_mode = data["requires_confirmation"]
+            st.session_state.confirmation_message = data["confirmation_message"]
+            
+            if st.session_state.confirmation_mode:
+                st.session_state.show_qr = True
         
         # Clear the input
         st.session_state.current_input = ""
 
 def handle_confirmation(confirmed: bool):
-    if confirmed:
-        st.session_state.chat_history.append({"role": "assistant", "content": "Great! I'll start processing your request."})
-        # Here you would trigger your backend processes
-    else:
-        st.session_state.chat_history.append({"role": "assistant", "content": "I apologize for the misunderstanding. Could you please provide more details?"})
+    # Send confirmation to backend
+    response = requests.post(
+        f"{API_BASE_URL}/api/chat/confirm",
+        json={
+            "confirmed": confirmed,
+            "chat_history": st.session_state.chat_history
+        }
+    )
     
-    st.session_state.confirmation_mode = False
-    st.session_state.confirmation_message = ""
+    if response.status_code == 200:
+        data = response.json()
+        st.session_state.chat_history = data["chat_history"]
+        st.session_state.confirmation_mode = False
+        st.session_state.confirmation_message = ""
+        
+        if confirmed:
+            # Start polling for QR code
+            st.session_state.show_qr = True
+
+def check_auth_status():
+    response = requests.get(f"{API_BASE_URL}/api/browser/status")
+    if response.status_code == 200:
+        data = response.json()
+        st.session_state.auth_complete = data["auth_complete"]
+        return data["auth_complete"]
+    return False
 
 # UI Layout
 st.title("Swedish Driving Test Booking Assistant")
@@ -64,9 +107,9 @@ for idx, hint in enumerate(HINTS):
 st.subheader("Chat")
 for message in st.session_state.chat_history:
     if message["role"] == "user":
-        st.text_area("You:", value=message["content"], height=50, disabled=True, key=f"msg_{id(message)}")
+        st.text_area("You:", value=message["content"], height=70, disabled=True, key=f"msg_{id(message)}")
     else:
-        st.text_area("Assistant:", value=message["content"], height=50, disabled=True, key=f"msg_{id(message)}")
+        st.text_area("Assistant:", value=message["content"], height=70, disabled=True, key=f"msg_{id(message)}")
 
 # Input section
 input_placeholder = "Type your booking request here..."
@@ -82,3 +125,28 @@ if st.session_state.confirmation_mode:
         st.button("Yes", on_click=handle_confirmation, args=(True,), type="primary")
     with col2:
         st.button("No", on_click=handle_confirmation, args=(False,))
+
+# QR Code section
+if st.session_state.show_qr:
+    st.write("---")
+    st.subheader("Authentication")
+    
+    # Get QR code
+    response = requests.get(f"{API_BASE_URL}/api/browser/qr")
+    if response.status_code == 200:
+        data = response.json()
+        if data["success"] and data["qr_image_base64"]:
+            # Display QR code
+            qr_image = Image.open(io.BytesIO(base64.b64decode(data["qr_image_base64"])))
+            st.image(qr_image, caption="Scan this QR code with your BankID app")
+            
+            # Check authentication status
+            if check_auth_status():
+                st.success("Authentication successful! Starting booking process...")
+                st.session_state.show_qr = False
+            else:
+                st.info("Waiting for authentication...")
+                time.sleep(2)  # Poll every 2 seconds
+                st.experimental_rerun()
+        else:
+            st.error("Failed to get QR code. Please try again.")
