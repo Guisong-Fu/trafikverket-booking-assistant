@@ -20,6 +20,8 @@ if 'confirmation_message' not in st.session_state:
     st.session_state.confirmation_message = ""
 if 'show_qr' not in st.session_state:
     st.session_state.show_qr = False
+if 'qr_showed' not in st.session_state:
+    st.session_state.qr_showed = False    
 if 'auth_complete' not in st.session_state:
     st.session_state.auth_complete = False
 if 'qr_image_base64' not in st.session_state:
@@ -143,7 +145,7 @@ if True:
     # Function to update the QR code display
     def update_qr_display():
         response = requests.get(f"{API_BASE_URL}/api/browser/qr")
-        print("Response", response.json())
+        print("QR Response", response.json())
         if response.status_code == 200:
             data = response.json()
             if data["success"] and data["qr_image_base64"]:
@@ -151,27 +153,34 @@ if True:
                 qr_image = Image.open(io.BytesIO(base64.b64decode(data["qr_image_base64"])))
                 qr_placeholder.image(qr_image, caption="Scan this QR code with your BankID app")
                 
-                # Check authentication status
-                if data["auth_complete"]:
-                    status_placeholder.success("Authentication successful! Starting booking process...")
-                    st.session_state.show_qr = False
-                    st.session_state.qr_image_base64 = None
-                    return True
-                else:
-                    status_placeholder.info("Waiting for authentication...")
-                    return False
             else:
                 status_placeholder.error("Failed to get QR code. Please try again.")
-                return False
-        return False
     
-    # Initial QR code display
-    if st.session_state.qr_image_base64 is None:
-        print("Updating QR code display")
-        update_qr_display()
+    def run_qr_code_flow():
+
+        # todo: this is the start session
+        if not st.session_state.qr_showed:
+            update_qr_display()
+            st.session_state.qr_showed = True
+
+        response = requests.get(f"{API_BASE_URL}/api/browser/status")
+        print("Auth Status Response", response.json())
+        if response.status_code == 200:
+            data = response.json()
+            if not data["auth_complete"]:
+                update_qr_display()
+                print("Updating QR code display")
+                
+            else:
+                status_placeholder.success("Authentication successful! Starting booking process...")
+                st.session_state.show_qr = False
+                st.session_state.qr_image_base64 = None
     
-    # Set up auto-refresh using Streamlit's auto-refresh feature
-    if not st.session_state.get("auth_complete", False):
-        # This will refresh the page every 2 seconds
-        time.sleep(2)
-        st.rerun()
+    # run_qr_code_flow()
+    while not st.session_state.get("auth_complete", False):
+        run_qr_code_flow()
+        time.sleep(1)
+    
+
+
+

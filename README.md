@@ -1,3 +1,15 @@
+if the invalid QR code gets scanned, the process(official) website will be stopped.
+
+
+session starts -> 
+if it's new session -> it should not check auth, it should generate QR
+
+
+
+
+
+
+
 ```
 uv run uvicorn app.main:app --reload
 

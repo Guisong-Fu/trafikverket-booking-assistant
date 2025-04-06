@@ -23,50 +23,41 @@ class BrowserService:
             browser = Browser(config=browser_config)
             self.browser_context = BrowserContext(browser=browser)
             await self.browser_context.get_session()
-            # Initialize the QR code when browser is first created
-            await self._refresh_qr_code()
+            
 
-    async def _refresh_qr_code(self):
-        """Internal method to refresh the QR code without creating a new browser context"""
-        print("Refreshing QR code")
+    async def get_qr_code(self):
+        """Get the current QR code, refreshing it if needed"""
+        print("Getting QR code")
+        # Initialize browser if not already initialized
         if not self.browser_context:
             await self.initialize_browser()
-            return
-        
+            
         try:
             page = await self.browser_context.get_current_page()
             current_url = page.url
             
             # If we're not on the booking page, navigate there first
             if not current_url.startswith("https://fp.trafikverket.se/Boka/"):
+                print("Navigating to booking page")
                 await page.goto("https://fp.trafikverket.se/Boka/#/", wait_until="networkidle")
-            
-            try:
-                # Check if we're already authenticated by looking for the logout button
-                logout_button = await page.wait_for_selector("[data-bs-toggle='dropdown']", timeout=1000)
-                if logout_button:
-                    button_text = await logout_button.text_content()
-                    if "Logga ut" in button_text:
-                        print("Found logout button - authenticated!")
-                        self.auth_complete = True
-                        return
-            except Exception as e:
-                print("Not authenticated, proceeding with login flow")
             
             # Look for QR code
             try:
                 qr_element = await page.query_selector(".qrcode")
+
                 if not qr_element:
                     # Click login button if visible
                     login_button = await page.query_selector("text=Logga in")
                     if login_button:
                         await login_button.click()
+                        print("Clicked login button")
                         await page.wait_for_load_state("networkidle")
                     
                     # Click continue button if visible
                     continue_button = await page.query_selector("text=Fortsätt")
                     if continue_button:
                         await continue_button.click()
+                        print("Clicked Fortsätt button")
                         await page.wait_for_load_state("networkidle")
                     
                     # Wait for QR code with longer timeout
@@ -76,25 +67,9 @@ class BrowserService:
                 if qr_element:
                     # Get a fresh screenshot of the QR code
                     qr_bytes = await qr_element.screenshot()
+                    # todo: maybe I should double check the QR code is the same?
                     self.current_qr_base64 = base64.b64encode(qr_bytes).decode("utf-8")
                     
-                    # Check for successful login by waiting for the logout button
-                    try:
-                        print("Checking for authentication...")
-                        await page.wait_for_selector("#desktop-logout-button", timeout=30000)
-                        print("Found logout button")
-                        button = await page.query_selector("#desktop-logout-button")
-                        if button:
-                            print("Button found")
-                            text = await button.text_content()
-                            if "Logga ut" in text:
-                                print("Authentication successful!")
-                                self.auth_complete = True
-                            else:
-                                self.auth_complete = False
-                    except Exception as e:
-                        print(f"Not authenticated yet: {e}")
-                        self.auth_complete = False
             except Exception as e:
                 print(f"Error in login flow: {e}")
                 self.auth_complete = False
@@ -105,11 +80,6 @@ class BrowserService:
                 print("Browser context was closed, reinitializing...")
                 self.browser_context = None
                 await self.initialize_browser()
-
-    async def get_qr_code(self):
-        """Get the current QR code, refreshing it if needed"""
-        # Always refresh the QR code to get the latest one
-        await self._refresh_qr_code()
         
         return {
             "success": True,
@@ -118,6 +88,25 @@ class BrowserService:
         }
 
     async def get_auth_status(self):
+            
+        page = await self.browser_context.get_current_page()
+        # Check for successful login by looking for the logout button
+        try:
+            print("Checking for authentication...")
+            # Use query_selector instead of wait_for_selector for immediate response
+            button = await page.query_selector("#desktop-logout-button")
+            
+            if button:
+                print("Logout button found")
+                text = await button.text_content()
+                if "Logga ut" in text:
+                    print("Authentication successful!")
+                    self.auth_complete = True
+            else:
+                print("Logout button not found - not authenticated")
+        except Exception as e:
+            print(f"Error checking authentication: {e}")
+
         return {
             "auth_complete": self.auth_complete,
             "message": "Authenticated" if self.auth_complete else "Not authenticated"

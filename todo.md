@@ -1,6 +1,11 @@
+It feels like it's all about timing -> the QR code on the streamlit app and trafik are not in sync
+
+
+
+
 04-05:
 1. langchain prompt needs to be revised -> no need to double check with user
-2. 
+2. the "authentication" flow should be thought again
 
 
 
