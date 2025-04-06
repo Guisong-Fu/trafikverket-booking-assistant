@@ -85,13 +85,6 @@ def handle_confirmation(confirmed: bool):
             # Start polling for QR code
             st.session_state.show_qr = True
 
-def check_auth_status():
-    response = requests.get(f"{API_BASE_URL}/api/browser/status")
-    if response.status_code == 200:
-        data = response.json()
-        st.session_state.auth_complete = data["auth_complete"]
-        return data["auth_complete"]
-    return False
 
 # UI Layout
 st.title("Swedish Driving Test Booking Assistant")
@@ -175,12 +168,14 @@ if True:
                 status_placeholder.success("Authentication successful! Starting booking process...")
                 st.session_state.show_qr = False
                 st.session_state.qr_image_base64 = None
+                st.session_state.auth_complete = True
     
     # run_qr_code_flow()
     while not st.session_state.get("auth_complete", False):
         run_qr_code_flow()
         time.sleep(1)
     
-
-
-
+    
+if st.session_state.auth_complete:
+    response = requests.get(f"{API_BASE_URL}/api/browser/book")
+    print("Book Response", response.json())
