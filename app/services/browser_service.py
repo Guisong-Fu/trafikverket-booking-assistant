@@ -17,6 +17,8 @@ class BrowserService:
         self.browser_task = None
         self.llm = ChatOpenAI(model="gpt-4o-mini")
 
+        self.qr_started = False
+
     async def initialize_browser(self):
         if not self.browser_context:
             browser_config = BrowserConfig()
@@ -45,7 +47,8 @@ class BrowserService:
             try:
                 qr_element = await page.query_selector(".qrcode")
 
-                if not qr_element:
+                # if not qr_element:
+                if not self.qr_started:
                     # Click login button if visible
                     login_button = await page.query_selector("text=Logga in")
                     if login_button:
@@ -63,8 +66,10 @@ class BrowserService:
                     # Wait for QR code with longer timeout
                     await page.wait_for_selector(".qrcode", timeout=20000)
                     qr_element = await page.query_selector(".qrcode")
+                    self.qr_started = True
                 
-                if qr_element:
+                # if qr_element:
+                if self.qr_started:
                     # Get a fresh screenshot of the QR code
                     qr_bytes = await qr_element.screenshot()
                     # todo: maybe I should double check the QR code is the same?
