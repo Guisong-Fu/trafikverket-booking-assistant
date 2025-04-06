@@ -4,6 +4,9 @@
 2. the "authentication" flow should be thought again
 
 
+those models need to be revised
+/Users/guisong/fun/trafikverket/app/models/browser.py
+
 
 1. use browser-use to do after work
     a. choose test type, location, language and etc. -> natrual language part
