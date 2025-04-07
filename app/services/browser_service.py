@@ -133,8 +133,13 @@ class BrowserService:
             # 5. If there is a slot available in the preferred time, book it
             # """,
             task=f"""
-            Click book test
+            1. Click "Boka prov"
+            2. Click "Logga ut"
+            3. Then click "Ja, logga ut"
             """,
+            # task=f"""
+            # log out completely
+            # """,
             llm=self.llm,
             browser_context=self.browser_context
         )

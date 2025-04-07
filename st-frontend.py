@@ -126,8 +126,8 @@ if st.session_state.confirmation_mode:
         st.button("No", on_click=handle_confirmation, args=(False,))
 
 # QR Code section
-# if st.session_state.show_qr:
-if True:
+if st.session_state.show_qr:
+# if True:
     st.write("---")
     st.subheader("Authentication")
     
@@ -181,8 +181,10 @@ if st.session_state.auth_complete:
     test_request = {
         "license_type": "B",
         "test_type": "theory",
-        "location": ["Uppsala"]    
+        "transmission_type": "manual",  # Add this required field
+        "location": ["Uppsala"],
+        "time_preference": [{"preference": "earliest available"}]  # Add this required field
     }
-    
+
     response = requests.post(f"{API_BASE_URL}/api/browser/book", json=test_request)
     print("Book Response", response.json())

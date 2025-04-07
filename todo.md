@@ -4,7 +4,7 @@
 4. the data models need to double checked
 5. chatbot needs to understand other languages
 
-
+haven't test the refresh, how frequent should I refresh to keep the session alive
 
 
 1. use browser-use to do after work
