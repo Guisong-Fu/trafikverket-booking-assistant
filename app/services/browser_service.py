@@ -6,7 +6,7 @@ import asyncio
 import base64
 import os
 from dotenv import load_dotenv
-
+from app.models.data_models import ExamRequest
 load_dotenv()
 
 class BrowserService:
@@ -117,9 +117,11 @@ class BrowserService:
             "message": "Authenticated" if self.auth_complete else "Not authenticated"
         }
 
-    async def start_booking(self, exam_request):
+    async def start_booking(self, exam_request: ExamRequest):
         if not self.auth_complete:
             raise Exception("User not authenticated")
+
+        # todo: need to work more on the tasks. -> "new test" and "reschedule test" is different
 
         # Create and run the agent with the browser context
         agent = Agent(

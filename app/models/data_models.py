@@ -1,6 +1,10 @@
 from pydantic import BaseModel
 from typing import List, Optional, Dict, Any
 
+
+# todo: double check those models
+
+# Chat messages
 class ChatMessage(BaseModel):
     role: str
     content: str
@@ -25,4 +29,14 @@ class ExamRequest(BaseModel):
     transmission_type: str
     location: List[str]
     time_preference: List[Dict[str, Any]]
-    other: Optional[str] = None 
+
+# Browser models
+class QRResponse(BaseModel):
+    success: bool
+    qr_image_base64: Optional[str] = None
+    auth_complete: bool = False
+    message: Optional[str] = None
+
+class AuthStatus(BaseModel):
+    auth_complete: bool
+    message: Optional[str] = None

@@ -1,5 +1,5 @@
 from fastapi import APIRouter, HTTPException
-from app.models.browser import QRResponse, AuthStatus, BookingRequest
+from app.models.data_models import QRResponse, AuthStatus, ExamRequest
 from app.services.browser_service import BrowserService
 import asyncio
 import os
@@ -36,11 +36,12 @@ async def get_auth_status():
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+
 @router.post("/book", response_model=dict)
-async def start_booking(request: BookingRequest):
+async def start_booking(exam_request: ExamRequest):
     try:
         # Start the booking process
-        result = await browser_service.start_booking(request.exam_request)
+        result = await browser_service.start_booking(exam_request)
         return {
             "success": True,
             "message": "Booking process started",

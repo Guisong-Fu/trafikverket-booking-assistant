@@ -1,11 +1,10 @@
-04-06:
 1. the QR code solution seems to be working, but I haven't pressure tested it.
-1. langchain prompt needs to be revised -> no need to double check with user
-2. the "authentication" flow should be thought again
+2. langchain prompt needs to be revised -> no need to double check with user
+3. the "authentication" flow should be thought again
+4. the data models need to double checked
+5. chatbot needs to understand other languages
 
 
-those models need to be revised
-/Users/guisong/fun/trafikverket/app/models/browser.py
 
 
 1. use browser-use to do after work

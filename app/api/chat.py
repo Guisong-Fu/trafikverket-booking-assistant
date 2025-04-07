@@ -1,5 +1,5 @@
 from fastapi import APIRouter, HTTPException
-from app.models.chat import ChatRequest, ChatResponse, ConfirmationRequest
+from app.models.data_models import ChatRequest, ChatResponse, ConfirmationRequest, ExamRequest
 from app.services.chatbot import DriverLicenseExamBot
 import os
 import logging

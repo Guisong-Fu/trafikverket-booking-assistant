@@ -179,12 +179,10 @@ if True:
 if st.session_state.auth_complete:
     # Basic test exam request
     test_request = {
-        "exam_request": {
-            "license_type": "B",
-            "test_type": "theory",
-            "location": ["Uppsala"]
-            
-        }
+        "license_type": "B",
+        "test_type": "theory",
+        "location": ["Uppsala"]    
     }
+    
     response = requests.post(f"{API_BASE_URL}/api/browser/book", json=test_request)
     print("Book Response", response.json())
