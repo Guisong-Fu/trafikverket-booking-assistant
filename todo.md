@@ -1,8 +1,27 @@
+04-08:
+1. chat -> a bit redudadent(ask two many questions)
+2. chat -> the "ask for confirmation part" does not work, it is repeated
+3. the request is not passed to the backend yet
+    what if the user wants to reschedule?
+4. make browser-use more reliable
+    check more on browser-use
+
+
+
+
+
+
+
+
+
 1. the QR code solution seems to be working, but I haven't pressure tested it.
 2. langchain prompt needs to be revised -> no need to double check with user
 3. the "authentication" flow should be thought again
 4. the data models need to double checked
 5. chatbot needs to understand other languages
+6. browser-use, how to run it locally.
+
+
 
 haven't test the refresh, how frequent should I refresh to keep the session alive
 

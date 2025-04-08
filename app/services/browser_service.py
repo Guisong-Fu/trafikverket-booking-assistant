@@ -124,6 +124,7 @@ class BrowserService:
         # todo: need to work more on the tasks. -> "new test" and "reschedule test" is different
 
         # Create and run the agent with the browser context
+        # todo: this tasks sort of works, but it does not close the browser after finished
         agent = Agent(
             # task=f"""
             # 1. Click book test
@@ -137,9 +138,6 @@ class BrowserService:
             2. Click "Logga ut"
             3. Then click "Ja, logga ut"
             """,
-            # task=f"""
-            # log out completely
-            # """,
             llm=self.llm,
             browser_context=self.browser_context
         )
