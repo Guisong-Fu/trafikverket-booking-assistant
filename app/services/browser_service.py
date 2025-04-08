@@ -137,6 +137,7 @@ class BrowserService:
             1. Click "Boka prov"
             2. Click "Logga ut"
             3. Then click "Ja, logga ut"
+            4. close the browser
             """,
             llm=self.llm,
             browser_context=self.browser_context

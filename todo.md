@@ -6,6 +6,48 @@
 4. make browser-use more reliable
     check more on browser-use
 5. streamlit confirmation mode is not working
+6. browser is not closed, but maybe this doesn't matter as we will run it in docker environment
+7. the QR code solution seems to be working, but I haven't pressure tested it.
+8. langchain prompt needs to be revised -> no need to double check with user
+9. the "authentication" flow should be thought again
+10. the data models need to double checked
+11. chatbot needs to understand other languages
+12. browser-use, how to run it locally.
+
+
+Browser-use improvement ideas:
+
+I think the basic approach is that, instead of simply specify the tasks/steps, we can make the instruction more "explict"
+it has something like 
+`await page.keyboard.press('Control+G')`
+`await page.keyboard.type(text, delay=0.1)`
+
+maybe together with `controllor`, we can say for example, "if reschedule -> then use this controller(click this button and etc.), instead of letting LLM decide what to do"
+
+
+There is this `ActionResult`, what is the use of this? 
+`return ActionResult(extracted_content=f'Selected cell {cell_or_range}', include_in_memory=False)`
+
+
+
+look more into the config `BrowserConfig` and `BrowserContextConfig` -> at least headless
+```
+	config=BrowserConfig(
+		headless=False,  # This is True in production
+		disable_security=True,
+		new_context_config=BrowserContextConfig(
+			disable_security=True,
+			minimum_wait_page_load_time=1,  # 3 on prod
+			maximum_wait_page_load_time=10,  # 20 on prod
+			# no_viewport=True,
+			browser_window_size={
+				'width': 1280,
+				'height': 1100,
+			},
+			# trace_path='./tmp/web_voyager_agent',
+		),
+	)
+```
 
 
 
@@ -14,12 +56,13 @@
 
 
 
-1. the QR code solution seems to be working, but I haven't pressure tested it.
-2. langchain prompt needs to be revised -> no need to double check with user
-3. the "authentication" flow should be thought again
-4. the data models need to double checked
-5. chatbot needs to understand other languages
-6. browser-use, how to run it locally.
+
+
+
+
+
+
+
 
 
 

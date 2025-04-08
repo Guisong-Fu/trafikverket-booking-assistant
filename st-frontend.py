@@ -126,8 +126,8 @@ if st.session_state.confirmation_mode:
         st.button("No", on_click=handle_confirmation, args=(False,))
 
 # QR Code section
-if st.session_state.show_qr:
-# if True:
+# if st.session_state.show_qr:
+if True:
     st.write("---")
     st.subheader("Authentication")
     
