@@ -7,12 +7,13 @@ from app.services.browser_service import BrowserService
 import os
 import logging
 from dotenv import load_dotenv
+load_dotenv()
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-load_dotenv()
+
 
 app = FastAPI(
     title="Trafikverket Booking Assistant",

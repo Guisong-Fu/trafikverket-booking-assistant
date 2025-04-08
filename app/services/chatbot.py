@@ -22,14 +22,17 @@ class ExamRequest(BaseModel):
     test_type: str = Field(
         None, description="Type of test (practical driving test or theory test)"
     )
-    transmission_type: str = Field(
-        None, description="Transmission type (manual or automatic)"
+    transmission_type: Optional[str] = Field(
+        default=None,
+        description="Transmission type (manual or automatic)",
+        examples=["manual", "automatic"]
     )
     location: List[str] = Field(
         default_factory=list, description="Preferred test locations (up to 4)"
     )
     time_preference: List[Dict[str, Any]] = Field(
-        default_factory=list, description="Time preferences with priorities"
+        default_factory=lambda: [{"preference": "as early as possible"}], 
+        description="Time preferences with priorities"
     )
 
 
@@ -230,26 +233,25 @@ Missing information:
 Remember to validate all inputs against the provided valid options.
 
 IMPORTANT: Your response MUST be in valid JSON format with the following structure:
-{{
+{{{{
   "license_type": "B",
   "test_type": "practical driving test",
   "transmission_type": "manual",
   "location": ["Uppsala"],
-  "time_preference": [{{"preference": "as early as possible"}}],
-  "other": null
-}}
-
+  "time_preference": ["as early as possible"]
+}}}}
 If you need to ask the user for more information, include a "message" field in your JSON response with your question.
 """
 
 
 class DriverLicenseExamBot:
-    def __init__(self, api_key: str, model: str = "gpt-3.5-turbo"):
+    def __init__(self, api_key: str):
         """Initialize the chatbot with OpenAI API key and model."""
         if not api_key:
             raise ValueError("OpenAI API key is required")
 
-        self.llm = ChatOpenAI(api_key=api_key, model=model, temperature=0.2)
+        # todo: double check parameters, maybe there is something more we can tweak
+        self.llm = ChatOpenAI(api_key=api_key, model="gpt-4o-mini", temperature=0.7)
         self.memory = ConversationBufferMemory(return_messages=True)
         self.collected_info = ExamRequest()
         self.create_agent()
@@ -257,53 +259,14 @@ class DriverLicenseExamBot:
     def create_agent(self):
         """Create the conversation agent with appropriate prompts."""
         try:
-            # Create a simplified system prompt without JSON examples
-            base_system_prompt = """You are a friendly and efficient assistant helping users register for driver's license exams.
-            
-You need to collect the following information:
-1. License Type: One of {license_types}, e.g. "B"
-2. Test Type: One of {test_types}, e.g. "practical driving test"
-3. Transmission Type: One of {transmission_types}, e.g. "manual"
-4. Location: Up to 4 locations from the provided list {locations}, user is allowed to only provide one location, e.g. "Farsta"
-5. Time Preference: Flexible time ranges or "earliest available". Examples:
-   - Specific times: "Every Tuesday morning 8:00-10:00"
-   - Multiple options: "Tuesday morning or Wednesday afternoon"
-   - Exclusions: "Not Friday afternoon, otherwise anytime"
-   - Priority-based: "Morning preferred, but afternoon works too"
-   - Simple: "As early as possible"
-
-Guidelines:
-1. First, thoroughly analyze the user's input to extract all available information. Only prompt for additional details if:
-   - Required information is missing
-   - Provided information is ambiguous or unclear
-   - Information doesn't match valid options
-   - User's input contains conflicting information
-2. Minimize the number of questions you ask
-3. Validate all provided information against the valid options
-4. Be conversational but efficient
-5. For time preferences, help structure them with priorities
-6. Once all information is collected, provide a clear summary and ask for confirmation
-7. After confirmation, return the data in the exact JSON format specified
-
-Current collected information:
-{collected_info}
-
-Missing information:
-{missing_info}
-
-Remember to validate all inputs against the provided valid options.
-
-IMPORTANT: Your response MUST be in valid JSON format. Include a "message" field if you need to ask the user for more information.
-"""
-
             # Format the system prompt with the valid options
-            system_prompt = base_system_prompt.format(
+            system_prompt = SYSTEM_PROMPT_TEMPLATE.format(
                 license_types=", ".join(VALID_LICENSE_TYPES),
                 test_types=", ".join(VALID_TEST_TYPES),
                 locations=", ".join(VALID_LOCATIONS),
                 transmission_types=", ".join(VALID_TRANSMISSION_TYPES),
-                collected_info="{collected_info}",
-                missing_info="{missing_info}",
+                collected_info="collected_info",
+                missing_info="missing_info",
             )
 
             # Create the prompt template
@@ -610,3 +573,39 @@ IMPORTANT: Your response MUST be in valid JSON format. Include a "message" field
                 "message": f"Failed to send data to backend: {str(e)}",
                 "data": self.get_collected_info(),
             }
+
+
+# For local testing
+if __name__ == "__main__":
+    import os
+    from dotenv import load_dotenv
+    load_dotenv()
+    
+    # Initialize the bot
+    bot = DriverLicenseExamBot(api_key=os.getenv("OPENAI_API_KEY"))
+    
+    print("Driver's License Exam Registration Bot")
+    print("Type 'exit' to end the conversation\n")
+    
+    while True:
+        # todo: what is this input? what does §you§ mean here?
+        user_input = input("You: ")
+        if user_input.lower() == 'exit':
+            break
+            
+        response = bot.chat(user_input)
+        print(f"Bot: {response}")
+        
+        # Check if all information has been collected and confirmed
+        if not bot._get_missing_info() and "Is this information correct?" in response:
+            confirmation = input("You: ")
+            if confirmation.lower() == 'yes':
+                # backend_response = bot.send_to_backend("https://api.example.com/register")
+                # print(f"\nBackend Response: {json.dumps(backend_response, indent=2)}")
+                # todo(Guisong): this never gets called
+                print("Backend response:")
+                break
+            else:
+                # Reset collected info and continue
+                bot.collected_info = ExamRequest()
+                print("Bot: Let's start over. What type of license are you applying for?")
