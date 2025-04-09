@@ -13,7 +13,7 @@ Development Related:
 10. the data models need to double checked
 11. chatbot needs to understand other languages
 12. browser-use, how to run it locally.
-
+13. think of some "unit tests"
 
 
 

@@ -1,5 +1,12 @@
+import sys
+from pathlib import Path
+
+# Add the project root to the Python path
+project_root = Path(__file__).parent.parent.parent
+sys.path.append(str(project_root))
+
 from typing import Dict, List, Optional, Any
-from pydantic import BaseModel, Field
+from pydantic import Field
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain_core.output_parsers import JsonOutputParser
 from langchain_openai import ChatOpenAI
@@ -10,191 +17,17 @@ import requests
 import logging
 from datetime import datetime
 import re
+from validation_constants import (
+    VALID_LICENSE_TYPES,
+    VALID_TEST_TYPES,
+    VALID_TRANSMISSION_TYPES,
+    VALID_LOCATIONS,
+)
+from app.models.data_models import ExamRequest
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
-
-
-# Define the data model for exam requests
-class ExamRequest(BaseModel):
-    license_type: str = Field(None, description="Type of license (e.g., A, A1, B, BE)")
-    test_type: str = Field(
-        None, description="Type of test (practical driving test or theory test)"
-    )
-    transmission_type: Optional[str] = Field(
-        default=None,
-        description="Transmission type (manual or automatic)",
-        examples=["manual", "automatic"]
-    )
-    location: List[str] = Field(
-        default_factory=list, description="Preferred test locations (up to 4)"
-    )
-    time_preference: List[Dict[str, Any]] = Field(
-        default_factory=lambda: [{"preference": "as early as possible"}], 
-        description="Time preferences with priorities"
-    )
-
-
-# Define valid options
-VALID_LICENSE_TYPES = [
-    "A",
-    "A1",
-    "A2",
-    "B",
-    "B96",
-    "BE",
-    "Bus",
-    "Goods",
-    "C",
-    "C1",
-    "C1E",
-    "CE",
-    "D",
-    "D1",
-    "D1E",
-    "DE",
-    "Bus",
-    "Lorry",
-    "Train driver",
-    "Taxi",
-    "AM",
-    "Tractor",
-    "ADR",
-    "APV",
-    "VVH",
-]
-
-VALID_TEST_TYPES = ["practical driving test", "theory test"]
-VALID_TRANSMISSION_TYPES = ["manual", "automatic"]
-
-# List of valid locations (truncated for brevity, but should include all locations)
-VALID_LOCATIONS = [
-    "Alingsås",
-    "Älmhult",
-    "Ånge",
-    "Ängelholm",
-    "Arjeplog",
-    "Arvidsjaur",
-    "Arvika",
-    "Avesta",
-    "Boden",
-    "Bollnäs",
-    "Borås",
-    "Borlänge",
-    "Eksjö",
-    "Enköping",
-    "Eskilstuna",
-    "Eslöv",
-    "Fagersta",
-    "Falkenberg",
-    "Falköping",
-    "Falun",
-    "Farsta",
-    "Finspång",
-    "Flen",
-    "Gällivare",
-    "Gävle",
-    "Gislaved",
-    "Göteborg Högsbo",
-    "Göteborg-Hisingen",
-    "Halmstad",
-    "Hammarstrand",
-    "Haparanda",
-    "Härnösand",
-    "Hässleholm",
-    "Hedemora",
-    "Helsingborg",
-    "HK",
-    "Hudiksvall",
-    "Järfälla",
-    "Järpen",
-    "Jokkmokk",
-    "Jönköping",
-    "Kalix",
-    "Kalmar",
-    "Karlshamn (NY)",
-    "Karlskoga",
-    "Karlskrona",
-    "Karlstad",
-    "Katrineholm",
-    "Kinna",
-    "Kiruna",
-    "Kisa",
-    "Köping",
-    "Kramfors",
-    "Kristianstad",
-    "Kristinehamn",
-    "Kumla",
-    "Kungälv",
-    "Kungsbacka",
-    "Landskrona",
-    "Lidköping",
-    "Lindesberg",
-    "Linköping",
-    "Ljungby",
-    "Ljusdal",
-    "Ludvika",
-    "Luleå",
-    "Lund",
-    "Lycksele",
-    "Lysekil",
-    "Malmö",
-    "Malung",
-    "Mariestad",
-    "Mjölby",
-    "Mora",
-    "Motala",
-    "Nässjö",
-    "Norrköping",
-    "Norrtälje 2",
-    "Nybro",
-    "Nyköping",
-    "Nynäshamn",
-    "Örebro",
-    "Örnsköldsvik",
-    "Oskarshamn",
-    "Östersund",
-    "Östhammar",
-    "Övertorneå",
-    "Pajala",
-    "Piteå",
-    "Ronneby",
-    "Säffle",
-    "Sala",
-    "Sandviken",
-    "Simrishamn",
-    "Skellefteå",
-    "Skövde",
-    "Söderhamn",
-    "Södertälje",
-    "Sollefteå",
-    "Sölvesborg",
-    "Strömstad",
-    "Strömsund",
-    "Sundsvall",
-    "Sunne",
-    "Sveg",
-    "Tranås",
-    "Trelleborg",
-    "Uddevalla",
-    "Ulricehamn",
-    "Umeå",
-    "Upplands Väsby",
-    "Uppsala",
-    "Vänersborg",
-    "Varberg",
-    "Värnamo",
-    "Västerås",
-    "Västerhaninge",
-    "Västervik",
-    "Växjö",
-    "Vetlanda",
-    "Vilhelmina",
-    "Vimmerby",
-    "Visby",
-    "Ystad",
-]
 
 
 SYSTEM_PROMPT_TEMPLATE = """You are a friendly and efficient assistant helping users register for driver's license exams.
@@ -202,7 +35,7 @@ SYSTEM_PROMPT_TEMPLATE = """You are a friendly and efficient assistant helping u
 You need to collect the following information:
 1. License Type: One of {license_types}, e.g. "B"
 2. Test Type: One of {test_types}, e.g. "practical driving test"
-3. Transmission Type: One of {transmission_types}, e.g. "manual"
+3. Transmission Type: One of {transmission_types}, e.g. "manual". If test type is "theory test", this field is not required.
 4. Location: Up to 4 locations from the provided list {locations}, user is allowed to only provide one location, e.g. "Farsta"
 5. Time Preference: Flexible time ranges or "earliest available". Examples:
    - Specific times: "Every Tuesday morning 8:00-10:00"

@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from typing import List, Optional, Dict, Any
 
 
@@ -23,12 +23,24 @@ class ConfirmationRequest(BaseModel):
     confirmed: bool
     chat_history: List[ChatMessage]
 
+# todo: how are thoese models used?
 class ExamRequest(BaseModel):
-    license_type: str
-    test_type: str
-    transmission_type: str
-    location: List[str]
-    time_preference: List[Dict[str, Any]]
+    license_type: str = Field(None, description="Type of license (e.g., A, A1, B, BE)")
+    test_type: str = Field(
+        None, description="Type of test (practical driving test or theory test)"
+    )
+    transmission_type: Optional[str] = Field(
+        default=None,
+        description="Transmission type (manual or automatic)",
+        examples=["manual", "automatic"]
+    )
+    location: List[str] = Field(
+        default_factory=list, description="Preferred test locations (up to 4)"
+    )
+    time_preference: List[Dict[str, Any]] = Field(
+        default_factory=lambda: [{"preference": "as early as possible"}], 
+        description="Time preferences with priorities"
+    )
 
 # Browser models
 class QRResponse(BaseModel):
