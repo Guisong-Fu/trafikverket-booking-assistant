@@ -1,4 +1,4 @@
-04-08:
+Development Related:
 1. chat -> a bit redudadent(ask two many questions)
 2. chat -> the "ask for confirmation part" does not work, it is repeated
 3. the request is not passed to the backend yet
@@ -13,6 +13,16 @@
 10. the data models need to double checked
 11. chatbot needs to understand other languages
 12. browser-use, how to run it locally.
+
+
+
+
+
+
+Production Related:
+1. Do we have to dockerize it? Can we simply create several browser-context?
+2. If we have to use container, maybe we can look into this project https://www.nomadproject.io/
+
 
 
 Browser-use improvement ideas:
