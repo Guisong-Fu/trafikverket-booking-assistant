@@ -54,7 +54,9 @@ def handle_chat_submit():
         )
         
         if response.status_code == 200:
+
             data = response.json()
+            
             st.session_state.chat_history = data["chat_history"]
             st.session_state.confirmation_mode = data["requires_confirmation"]
             st.session_state.confirmation_message = data["confirmation_message"]
@@ -65,6 +67,7 @@ def handle_chat_submit():
         # Clear the input
         st.session_state.current_input = ""
 
+# todo: confirm part is not working
 def handle_confirmation(confirmed: bool):
     # Send confirmation to backend
     response = requests.post(
@@ -82,7 +85,6 @@ def handle_confirmation(confirmed: bool):
         st.session_state.confirmation_message = ""
         
         if confirmed:
-            # Start polling for QR code
             st.session_state.show_qr = True
 
 
@@ -95,7 +97,7 @@ hint_cols = st.columns(len(HINTS))
 for idx, hint in enumerate(HINTS):
     with hint_cols[idx]:
         st.button(
-            f"Hint {idx + 1}",
+            hint,
             key=f"hint_{idx}",
             help=hint,
             on_click=copy_hint_to_input,
@@ -127,7 +129,8 @@ if st.session_state.confirmation_mode:
 
 # QR Code section
 # if st.session_state.show_qr:
-if True:
+# if True:
+if False:
     st.write("---")
     st.subheader("Authentication")
     

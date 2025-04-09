@@ -31,6 +31,8 @@ app.add_middleware(
 )
 
 # Initialize services
+# todo: this API key management can be improved
+# todo: router?
 chatbot = DriverLicenseExamBot(api_key=os.getenv("OPENAI_API_KEY"))
 browser_service = BrowserService()
 

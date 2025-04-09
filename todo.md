@@ -14,7 +14,8 @@ Development Related:
 11. chatbot needs to understand other languages
 12. browser-use, how to run it locally.
 13. think of some "unit tests"
-
+14. the code needs to be cleaned
+15. all the variables used in APIs should be double checked. It's a little bit too much
 
 
 

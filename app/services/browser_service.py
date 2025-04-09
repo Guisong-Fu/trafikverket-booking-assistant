@@ -5,8 +5,8 @@ from langchain_openai import ChatOpenAI
 import asyncio
 import base64
 import os
-from dotenv import load_dotenv
 from app.models.data_models import ExamRequest
+from dotenv import load_dotenv
 load_dotenv()
 
 class BrowserService:

@@ -17,17 +17,179 @@ import requests
 import logging
 from datetime import datetime
 import re
-from validation_constants import (
-    VALID_LICENSE_TYPES,
-    VALID_TEST_TYPES,
-    VALID_TRANSMISSION_TYPES,
-    VALID_LOCATIONS,
-)
+
 from app.models.data_models import ExamRequest
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+
+# Valid license types
+VALID_LICENSE_TYPES = [
+    "A",
+    "A1",
+    "A2",
+    "B",
+    "B96",
+    "BE",
+    "Bus",
+    "Goods",
+    "C",
+    "C1",
+    "C1E",
+    "CE",
+    "D",
+    "D1",
+    "D1E",
+    "DE",
+    "Bus",
+    "Lorry",
+    "Train driver",
+    "Taxi",
+    "AM",
+    "Tractor",
+    "ADR",
+    "APV",
+    "VVH",
+]
+
+VALID_TEST_TYPES = ["practical driving test", "theory test"]
+
+VALID_TRANSMISSION_TYPES = ["manual", "automatic"]
+
+VALID_LOCATIONS = [
+    "Alingsås",
+    "Älmhult",
+    "Ånge",
+    "Ängelholm",
+    "Arjeplog",
+    "Arvidsjaur",
+    "Arvika",
+    "Avesta",
+    "Boden",
+    "Bollnäs",
+    "Borås",
+    "Borlänge",
+    "Eksjö",
+    "Enköping",
+    "Eskilstuna",
+    "Eslöv",
+    "Fagersta",
+    "Falkenberg",
+    "Falköping",
+    "Falun",
+    "Farsta",
+    "Finspång",
+    "Flen",
+    "Gällivare",
+    "Gävle",
+    "Gislaved",
+    "Göteborg Högsbo",
+    "Göteborg-Hisingen",
+    "Halmstad",
+    "Hammarstrand",
+    "Haparanda",
+    "Härnösand",
+    "Hässleholm",
+    "Hedemora",
+    "Helsingborg",
+    "HK",
+    "Hudiksvall",
+    "Järfälla",
+    "Järpen",
+    "Jokkmokk",
+    "Jönköping",
+    "Kalix",
+    "Kalmar",
+    "Karlshamn (NY)",
+    "Karlskoga",
+    "Karlskrona",
+    "Karlstad",
+    "Katrineholm",
+    "Kinna",
+    "Kiruna",
+    "Kisa",
+    "Köping",
+    "Kramfors",
+    "Kristianstad",
+    "Kristinehamn",
+    "Kumla",
+    "Kungälv",
+    "Kungsbacka",
+    "Landskrona",
+    "Lidköping",
+    "Lindesberg",
+    "Linköping",
+    "Ljungby",
+    "Ljusdal",
+    "Ludvika",
+    "Luleå",
+    "Lund",
+    "Lycksele",
+    "Lysekil",
+    "Malmö",
+    "Malung",
+    "Mariestad",
+    "Mjölby",
+    "Mora",
+    "Motala",
+    "Nässjö",
+    "Norrköping",
+    "Norrtälje 2",
+    "Nybro",
+    "Nyköping",
+    "Nynäshamn",
+    "Örebro",
+    "Örnsköldsvik",
+    "Oskarshamn",
+    "Östersund",
+    "Östhammar",
+    "Övertorneå",
+    "Pajala",
+    "Piteå",
+    "Ronneby",
+    "Säffle",
+    "Sala",
+    "Sandviken",
+    "Simrishamn",
+    "Skellefteå",
+    "Skövde",
+    "Söderhamn",
+    "Södertälje",
+    "Sollefteå",
+    "Sölvesborg",
+    "Strömstad",
+    "Strömsund",
+    "Sundsvall",
+    "Sunne",
+    "Sveg",
+    "Tranås",
+    "Trelleborg",
+    "Uddevalla",
+    "Ulricehamn",
+    "Umeå",
+    "Upplands Väsby",
+    "Uppsala",
+    "Vänersborg",
+    "Varberg",
+    "Värnamo",
+    "Västerås",
+    "Västerhaninge",
+    "Västervik",
+    "Växjö",
+    "Vetlanda",
+    "Vilhelmina",
+    "Vimmerby",
+    "Visby",
+    "Ystad",
+] 
+
+
+
+
+
+
+
 
 
 SYSTEM_PROMPT_TEMPLATE = """You are a friendly and efficient assistant helping users register for driver's license exams.
@@ -54,7 +216,7 @@ Guidelines:
 3. Validate all provided information against the valid options
 4. Be conversational but efficient
 5. For time preferences, help structure them with priorities
-6. Once all information is collected, provide a clear summary and ask for confirmation
+6. Once all information is collected, provide a clear summary and ask for confirmation, please include "Is this information correct?" in the message
 7. After confirmation, return the data in the exact JSON format specified
 
 Current collected information:
@@ -73,6 +235,8 @@ IMPORTANT: Your response MUST be in valid JSON format with the following structu
   "location": ["Uppsala"],
   "time_preference": ["as early as possible"]
 }}}}
+
+
 If you need to ask the user for more information, include a "message" field in your JSON response with your question.
 """
 

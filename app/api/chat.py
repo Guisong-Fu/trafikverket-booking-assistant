@@ -34,6 +34,7 @@ async def process_message(request: ChatRequest):
         logger.info(f"Updated chat history: {chat_history}")
         
         # Check if we need confirmation
+        # todo: is this the right way to do this?
         requires_confirmation = "Is this information correct?" in response
         
         return ChatResponse(
@@ -42,6 +43,7 @@ async def process_message(request: ChatRequest):
             requires_confirmation=requires_confirmation,
             confirmation_message=response if requires_confirmation else None
         )
+    
     except Exception as e:
         logger.error(f"Error processing message: {str(e)}", exc_info=True)
         raise HTTPException(
