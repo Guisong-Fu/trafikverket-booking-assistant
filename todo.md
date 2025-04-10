@@ -16,6 +16,10 @@ Development Related:
 13. think of some "unit tests"
 14. the code needs to be cleaned
 15. all the variables used in APIs should be double checked. It's a little bit too much
+16. Prompt needs to be really improved!
+	a. when to display the result
+	b. make sure it asks for confirmation
+
 
 
 

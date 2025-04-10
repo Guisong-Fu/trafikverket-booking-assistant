@@ -60,10 +60,7 @@ def handle_chat_submit():
             st.session_state.chat_history = data["chat_history"]
             st.session_state.confirmation_mode = data["requires_confirmation"]
             st.session_state.confirmation_message = data["confirmation_message"]
-            
-            if st.session_state.confirmation_mode:
-                st.session_state.show_qr = True
-        
+                    
         # Clear the input
         st.session_state.current_input = ""
 
@@ -122,15 +119,15 @@ if st.session_state.confirmation_mode:
     st.write("---")
     st.write(st.session_state.confirmation_message)
     col1, col2 = st.columns(2)
+    # todo: why do these two columns have the same `handle_confirmation` function?
     with col1:
         st.button("Yes", on_click=handle_confirmation, args=(True,), type="primary")
     with col2:
         st.button("No", on_click=handle_confirmation, args=(False,))
 
 # QR Code section
-# if st.session_state.show_qr:
+if st.session_state.show_qr:
 # if True:
-if False:
     st.write("---")
     st.subheader("Authentication")
     

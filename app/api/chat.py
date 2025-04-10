@@ -51,6 +51,9 @@ async def process_message(request: ChatRequest):
             detail=f"Error processing message: {str(e)}"
         )
 
+
+
+# todo: there is an API for that, and a specific Chat Message is generated for that. Needed?
 @router.post("/confirm", response_model=ChatResponse)
 async def confirm_booking(request: ConfirmationRequest):
     try:
@@ -66,6 +69,7 @@ async def confirm_booking(request: ConfirmationRequest):
             chatbot.collected_info = ExamRequest()
             chatbot.memory.clear()
             
+            # todo: double check this. the information is not used anywhere
             return ChatResponse(
                 message="Great! I'll start the booking process. Please scan the QR code to authenticate.",
                 chat_history=request.chat_history,
