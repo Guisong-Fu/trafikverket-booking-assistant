@@ -19,6 +19,7 @@ Development Related:
 16. Prompt needs to be really improved!
 	a. when to display the result
 	b. make sure it asks for confirmation
+17. we probably need sessions? I mean, how to make sure if there won't be any problem 
 
 
 

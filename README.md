@@ -1,3 +1,10 @@
+let's go with front-end, client side. as we will have to display it either way
+
+
+
+
+
+
 if the invalid QR code gets scanned, the process(official) website will be stopped.
 
 

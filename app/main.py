@@ -2,10 +2,12 @@ from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from app.api import chat, browser
-from app.services.chatbot import DriverLicenseExamBot
+from app.services.chatbot_service import DriverLicenseExamBot
 from app.services.browser_service import BrowserService
-import os
 import logging
+
+
+# todo: how does env work? if it's loaded here, does it mean that it can be used in other files?
 from dotenv import load_dotenv
 load_dotenv()
 
@@ -32,11 +34,11 @@ app.add_middleware(
 
 # Initialize services
 # todo: this API key management can be improved
-# todo: router?
-chatbot = DriverLicenseExamBot(api_key=os.getenv("OPENAI_API_KEY"))
+chatbot_service = DriverLicenseExamBot()
 browser_service = BrowserService()
 
 # Include routers
+# todo: what is the use of routers?
 app.include_router(chat.router, prefix="/api/chat", tags=["chat"])
 app.include_router(browser.router, prefix="/api/browser", tags=["browser"])
 

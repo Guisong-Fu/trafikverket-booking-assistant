@@ -242,13 +242,11 @@ If you need to ask the user for more information, include a "message" field in y
 
 
 class DriverLicenseExamBot:
-    def __init__(self, api_key: str):
+    def __init__(self):
         """Initialize the chatbot with OpenAI API key and model."""
-        if not api_key:
-            raise ValueError("OpenAI API key is required")
 
         # todo: double check parameters, maybe there is something more we can tweak
-        self.llm = ChatOpenAI(api_key=api_key, model="gpt-4o-mini", temperature=0.7)
+        self.llm = ChatOpenAI(model="gpt-4o-mini", temperature=0.7)
         self.memory = ConversationBufferMemory(return_messages=True)
         self.collected_info = ExamRequest()
         self.create_agent()
@@ -579,7 +577,7 @@ if __name__ == "__main__":
     load_dotenv()
     
     # Initialize the bot
-    bot = DriverLicenseExamBot(api_key=os.getenv("OPENAI_API_KEY"))
+    bot = DriverLicenseExamBot()
     
     print("Driver's License Exam Registration Bot")
     print("Type 'exit' to end the conversation\n")

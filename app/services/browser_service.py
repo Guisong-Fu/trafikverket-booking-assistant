@@ -6,8 +6,6 @@ import asyncio
 import base64
 import os
 from app.models.data_models import ExamRequest
-from dotenv import load_dotenv
-load_dotenv()
 
 class BrowserService:
     def __init__(self):
