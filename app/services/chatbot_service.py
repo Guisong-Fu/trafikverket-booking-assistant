@@ -188,8 +188,8 @@ VALID_LOCATIONS = [
 
 
 
-
-
+# add support for language preference
+# Language Preference: Theory tests are available in multiple languages, including English, Arabic, Somali, and more
 
 
 SYSTEM_PROMPT_TEMPLATE = """You are a friendly and efficient assistant helping users register for driver's license exams.
@@ -247,6 +247,7 @@ class DriverLicenseExamBot:
 
         # todo: double check parameters, maybe there is something more we can tweak
         self.llm = ChatOpenAI(model="gpt-4o-mini", temperature=0.7)
+        # todo: this memory shall be upgraded to langgraph
         self.memory = ConversationBufferMemory(return_messages=True)
         self.collected_info = ExamRequest()
         self.create_agent()
@@ -265,6 +266,8 @@ class DriverLicenseExamBot:
             )
 
             # Create the prompt template
+            # todo: what is the use of this? So, all message will use this prompt?
+            # todo: tweak it if needed
             prompt = ChatPromptTemplate.from_messages(
                 [
                     ("system", system_prompt),
@@ -279,6 +282,9 @@ class DriverLicenseExamBot:
             logger.error(f"Error creating agent: {str(e)}", exc_info=True)
             raise
 
+    # todo: double check the logic here
+    # todo: language preference will need to be added here.
+    # todo: double check, how is this information being passed from LLM?
     def _validate_and_update_info(self, info: Dict[str, Any]) -> None:
         """Validate and update the collected information."""
         try:
@@ -370,6 +376,7 @@ class DriverLicenseExamBot:
             logger.error(f"Error getting missing info: {str(e)}", exc_info=True)
             raise
 
+    # todo: also, here is the response is hardcoded.
     def _create_summary(self) -> str:
         """Create a human-readable summary of the collected information."""
         try:
@@ -442,19 +449,19 @@ class DriverLicenseExamBot:
             # Check if we've collected all required info
             missing_info = self._get_missing_info()
 
-            print("Missing info: ", missing_info)
-
             try:
                 # Generate response based on the conversation history
+                # todo: is this the right way to do it? write a notebook to test it
                 chain_response = self.chain.invoke(
                     {
                         "history": self.memory.load_memory_variables({})["history"],
                         "input": user_input,
-                        "collected_info": self.collected_info.dict(),
+                        "collected_info": self.collected_info.model_dump(),
                         "missing_info": missing_info,
                     }
                 )
 
+                # todo: is this complicated JSON parsing thing really needed?
                 # Update collected information if any new data was provided
                 try:
                     # Try to extract JSON from the response
@@ -500,10 +507,12 @@ class DriverLicenseExamBot:
                     logger.error(f"Error processing LLM response: {str(e)}", exc_info=True)
                     # Continue with the original response text
 
+                # todo: why do we have to check again? cannot we simply use the one from above?
                 # Check again if we've collected all required info after processing the response
                 missing_info = self._get_missing_info()
                 
                 # If all information is collected, generate confirmation
+                # todo: so if there is not missing info, we just hard code the response? Then, the original AI generated reponse shall update the collected info, right? double check that
                 if not missing_info:
                     summary = self._create_summary()
                     response = f"{summary}\n\nIs this information correct? (yes/no)"
@@ -540,6 +549,8 @@ class DriverLicenseExamBot:
             logger.error(f"Error in chat: {str(e)}", exc_info=True)
             raise
 
+
+    # todo: most likely, the code down below can be removed
     def get_collected_info(self) -> Dict[str, Any]:
         """Return the collected information as a dictionary."""
         try:
@@ -572,7 +583,6 @@ class DriverLicenseExamBot:
 
 # For local testing
 if __name__ == "__main__":
-    import os
     from dotenv import load_dotenv
     load_dotenv()
     

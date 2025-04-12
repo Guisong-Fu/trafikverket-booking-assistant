@@ -1,19 +1,16 @@
 from fastapi import APIRouter, HTTPException
 from app.models.data_models import ChatRequest, ChatResponse, ConfirmationRequest, ExamRequest
-from app.services.chatbot import DriverLicenseExamBot
-import os
+from app.services.chatbot_service import DriverLicenseExamBot
 import logging
-from dotenv import load_dotenv
 from langchain_core.messages import HumanMessage, AIMessage
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-load_dotenv()
-
 router = APIRouter()
-chatbot = DriverLicenseExamBot(api_key=os.getenv("OPENAI_API_KEY"))
+# todo: how would scalability work if this is instantiated here?
+chatbot = DriverLicenseExamBot()
 
 @router.post("/message", response_model=ChatResponse)
 async def process_message(request: ChatRequest):

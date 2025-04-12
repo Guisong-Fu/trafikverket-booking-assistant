@@ -144,6 +144,7 @@ class BrowserService:
         result = await agent.run()
         return result
 
+    # todo: not in use. probably can be removed?
     async def cleanup(self):
         if self.browser_context:
             await self.browser_context.close()

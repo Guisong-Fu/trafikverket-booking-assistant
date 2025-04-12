@@ -137,7 +137,6 @@ ChatBot:
 2. this bot is asking questions one by one? would it work that it takes all information at once?
 3. Location is wrong -> it does not need say locations, the users shall know the locations by themselves, just verify if that is the case
 4. after confirm, it does not have to print all the information out
-5. /Users/guisong/fun/trafikverket/chatbot.py:182: PydanticDeprecatedSince20: The `dict` method is deprecated; use `model_dump` instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.11/migration/ -> pydandic changes
 
 
 
@@ -222,3 +221,21 @@ You: ^CTraceback (most recent call last):
   File "/Users/guisong/fun/trafikverket/chatbot.py", line 230, in <module>
     user_input = input("You: ")
 KeyboardInterrupt
+
+
+
+Here are all the booking options, maybe we can say "sorry we are not currently supporting special needs, like dyslexia or ADHD "
+```
+📍 Booking Options & Parameters
+
+When scheduling a driving test, several parameters can be specified:
+	•	Test Location: Select from various test centers across Sweden, such as Stockholm, Nyköping, Malmö, etc.
+	•	Test Type: Choose between theory (knowledge) tests and practical (driving) tests. ￼
+	•	Transmission Type: For Category B licenses, specify manual or automatic transmission. Note that passing the test in an automatic vehicle restricts the license to automatic cars only.  ￼
+	•	Language Preference: Theory tests are available in multiple languages, including English, Arabic, Somali, and more.  ￼
+	•	Support Needs: Applicants with conditions like dyslexia or ADHD can request extended test time, oral support, or an interpreter.  ￼
+	•	Time Preferences: While specific time slots may not be guaranteed, applicants can often choose preferred dates and times based on availability.
+```
+
+
+

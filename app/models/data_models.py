@@ -2,7 +2,7 @@ from pydantic import BaseModel, Field
 from typing import List, Optional, Dict, Any
 
 
-# todo: double check those models
+# todo: double check those models. Are they really needed?
 
 # Chat messages
 class ChatMessage(BaseModel):
@@ -23,12 +23,14 @@ class ConfirmationRequest(BaseModel):
     confirmed: bool
     chat_history: List[ChatMessage]
 
+
 # todo: how are thoese models used?
 class ExamRequest(BaseModel):
     license_type: str = Field(None, description="Type of license (e.g., A, A1, B, BE)")
     test_type: str = Field(
         None, description="Type of test (practical driving test or theory test)"
     )
+    # todo: add support for language preference
     transmission_type: Optional[str] = Field(
         default=None,
         description="Transmission type (manual or automatic)",
