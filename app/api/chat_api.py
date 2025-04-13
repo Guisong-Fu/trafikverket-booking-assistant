@@ -3,6 +3,7 @@ from app.models.data_models import ChatRequest, ChatResponse, ConfirmationReques
 from app.services.chatbot_service import DriverLicenseExamBot
 import logging
 from langchain_core.messages import HumanMessage, AIMessage
+from app.constants.messages import CONFIRMATION_PROMPT
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -22,6 +23,7 @@ async def process_message(request: ChatRequest):
         logger.info(f"Chatbot response: {response}")
         
         # Convert chat history to the required format
+        # todo: the chat history is already here, then we do not really request.chat_history, right ?
         chat_history = []
         for msg in chatbot.memory.chat_memory.messages:
             if isinstance(msg, HumanMessage):
@@ -32,13 +34,15 @@ async def process_message(request: ChatRequest):
         
         # Check if we need confirmation
         # todo: is this the right way to do this?
-        requires_confirmation = "Is this information correct?" in response
+        requires_confirmation = CONFIRMATION_PROMPT in response
         
+        # todo: do we really need to return chat history?
         return ChatResponse(
             message=response,
             chat_history=chat_history,
             requires_confirmation=requires_confirmation,
-            confirmation_message=response if requires_confirmation else None
+            # todo: is this the right way to convert chatbot.collected_info to ExamRequest?
+            exam_request=chatbot.collected_info if requires_confirmation else None
         )
     
     except Exception as e:
@@ -67,6 +71,7 @@ async def confirm_booking(request: ConfirmationRequest):
             chatbot.memory.clear()
             
             # todo: double check this. the information is not used anywhere
+            # todo: double check this request.chat_history is needed, if not, we can further clean the code 
             return ChatResponse(
                 message="Great! I'll start the booking process. Please scan the QR code to authenticate.",
                 chat_history=request.chat_history,

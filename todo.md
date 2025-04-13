@@ -1,3 +1,43 @@
+There is this bug。  `choose m, a, n, u, a, l as transmission type` is apparently wrong
+```
+INFO     [agent] 🚀 Starting task: 
+            1. Click "Boka prov"
+            2. choose and click B type of exam
+            3. choose practical driving test type of test
+            4. choose Uppsala as test location
+            5. choose m, a, n, u, a, l as transmission type
+            6. If there is a slot available in the preferred time mentioned in the as early as possible in May, click "Välj"
+            7. click that "trash-icon"(ta bort) to remove/cancel it from shopping cart
+            8. Click "Logga ut"
+            9. Then click "Ja, logga ut"
+            10. close the browser
+```
+
+1. browser use is not reliable at all. need more work on that. Maybe use controller or something
+2. Now it works like that. If the first message has all the information(no missing_info), there will be no LLM generated response and ask for confirmation. But if there is any more information that is missing and requires chat, then LLM ask for confirmation, instead of the hardcoded response.
+
+
+
+
+Essential:
+
+
+
+
+1. collected info shall be passed to frontend, instead of the "summary"
+2. what message shall be displayed on frontend for user to confirm and clarify? -> maybe we can help multiple prompts that do specific things, instead of one big prompt?
+
+why is there still that message
+
+
+
+I should better organize it.
+what are essential? what are for mvp? what are for production? what are for refactorization? what are must have? what are nice to have
+
+
+
+
+
 Development Related:
 1. chat -> a bit redudadent(ask two many questions)
 2. chat -> the "ask for confirmation part" does not work, it is repeated
@@ -20,7 +60,8 @@ Development Related:
 	a. when to display the result
 	b. make sure it asks for confirmation
 17. we probably need sessions? I mean, how to make sure if there won't be any problem 
-
+18. double check the data that is being passed from front-end or API
+19. Right now, 'time preference' is set to a list. Do we need to have some kind of ranking or priority here?
 
 
 

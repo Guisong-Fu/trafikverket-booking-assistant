@@ -125,17 +125,24 @@ class BrowserService:
         # todo: this tasks sort of works, but it does not close the browser after finished
         agent = Agent(
             # task=f"""
-            # 1. Click book test
-            # 2. choose {exam_request['license_type']} type of exam
-            # 3. choose {exam_request['test_type']}
-            # 4. choose {', '.join(exam_request['location'])} as test location
-            # 5. If there is a slot available in the preferred time, book it
+            # 1. Click "Boka prov"
+            # 2. Click "Logga ut"
+            # 3. Then click "Ja, logga ut"
+            # 4. close the browser
             # """,
+                        
+            # todo: refine this tasks
             task=f"""
             1. Click "Boka prov"
-            2. Click "Logga ut"
-            3. Then click "Ja, logga ut"
-            4. close the browser
+            2. choose and click {exam_request.license_type} type of exam
+            3. choose {exam_request.test_type} type of test
+            4. choose {', '.join(exam_request.location)} as test location
+            5. choose {', '.join(exam_request.transmission_type)} as transmission type
+            6. If there is a slot available in the preferred time mentioned in the {', '.join(exam_request.time_preference)}, click "Välj"
+            7. click that "trash-icon"(ta bort) to remove/cancel it from shopping cart
+            8. Click "Logga ut"
+            9. Then click "Ja, logga ut"
+            10. close the browser
             """,
             llm=self.llm,
             browser_context=self.browser_context

@@ -19,6 +19,7 @@ from datetime import datetime
 import re
 
 from app.models.data_models import ExamRequest
+from app.constants.messages import CONFIRMATION_PROMPT
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -376,70 +377,6 @@ class DriverLicenseExamBot:
             logger.error(f"Error getting missing info: {str(e)}", exc_info=True)
             raise
 
-    # todo: also, here is the response is hardcoded.
-    def _create_summary(self) -> str:
-        """Create a human-readable summary of the collected information."""
-        try:
-            summary = "Here's a summary of your exam request:\n\n"
-            
-            # License Type
-            if self.collected_info.license_type:
-                summary += f"License Type: {self.collected_info.license_type}\n"
-            else:
-                summary += "License Type: Not specified\n"
-                
-            # Test Type
-            if self.collected_info.test_type:
-                summary += f"Test Type: {self.collected_info.test_type}\n"
-            else:
-                summary += "Test Type: Not specified\n"
-                
-            # Transmission Type
-            if self.collected_info.transmission_type:
-                summary += f"Transmission Type: {self.collected_info.transmission_type}\n"
-            else:
-                summary += "Transmission Type: Not specified\n"
-                
-            # Location
-            if self.collected_info.location:
-                locations_str = ", ".join(self.collected_info.location)
-                summary += f"Location: {locations_str}\n"
-            else:
-                summary += "Location: Not specified\n"
-                
-            # Time Preference
-            if self.collected_info.time_preference:
-                time_prefs = []
-                for pref in self.collected_info.time_preference:
-                    if isinstance(pref, dict) and "preference" in pref:
-                        time_prefs.append(pref["preference"])
-                    else:
-                        time_prefs.append(str(pref))
-                summary += f"Time Preference: {', '.join(time_prefs)}\n"
-            else:
-                summary += "Time Preference: Not specified\n"
-                
-            # Check if any information is missing
-            missing_info = self._get_missing_info()
-            if missing_info:
-                summary += "\nMissing information:\n"
-                for info in missing_info:
-                    if info == "license_type":
-                        summary += "- License Type\n"
-                    elif info == "test_type":
-                        summary += "- Test Type\n"
-                    elif info == "transmission_type":
-                        summary += "- Transmission Type\n"
-                    elif info == "location":
-                        summary += "- Location\n"
-                    elif info == "time_preference":
-                        summary += "- Time Preference\n"
-                
-            return summary
-        except Exception as e:
-            logger.error(f"Error creating summary: {str(e)}", exc_info=True)
-            raise
-
     def chat(self, user_input: str) -> str:
         """Process a user message and return the bot's response."""
         try:
@@ -507,15 +444,10 @@ class DriverLicenseExamBot:
                     logger.error(f"Error processing LLM response: {str(e)}", exc_info=True)
                     # Continue with the original response text
 
-                # todo: why do we have to check again? cannot we simply use the one from above?
                 # Check again if we've collected all required info after processing the response
-                missing_info = self._get_missing_info()
-                
                 # If all information is collected, generate confirmation
-                # todo: so if there is not missing info, we just hard code the response? Then, the original AI generated reponse shall update the collected info, right? double check that
-                if not missing_info:
-                    summary = self._create_summary()
-                    response = f"{summary}\n\nIs this information correct? (yes/no)"
+                if not self._get_missing_info():
+                    response = f"Great! Now we have all information. {CONFIRMATION_PROMPT}"
                     self.memory.chat_memory.add_ai_message(response)
                     return response
 
@@ -531,6 +463,7 @@ class DriverLicenseExamBot:
                 fallback_response = "I'm having trouble processing your request. Let me try a different approach."
                 fallback_response += "\n\nCould you please provide the following information:"
                 
+                # todo: this is just for fallback, right? Not kind of hard coded response? It's not needed right now, right?
                 for info in missing_info:
                     if info == "license_type":
                         fallback_response += "\n- What type of license are you applying for? (e.g., B, A, etc.)"
