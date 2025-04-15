@@ -156,3 +156,51 @@ class BrowserService:
         if self.browser_context:
             await self.browser_context.close()
             self.browser_context = None 
+
+
+    async def local_test_authenticate(self):
+        page = await self.browser_context.get_current_page()
+        await page.goto("https://fp.trafikverket.se/Boka/#/", wait_until="networkidle")
+        login_button = await page.query_selector("text=Logga in")
+        if login_button:
+            await login_button.click()
+            print("Clicked login button")
+            await page.wait_for_load_state("networkidle")
+
+        continue_button = await page.query_selector("text=Fortsätt")
+        if continue_button:
+            await continue_button.click()
+            print("Clicked Fortsätt button")
+            await page.wait_for_load_state("networkidle")            
+        
+
+
+
+# For local testing
+# uv run -m app.services.browser_service
+if __name__ == "__main__":
+    from dotenv import load_dotenv
+    load_dotenv()
+
+    browser_service = BrowserService()
+
+    async def main():
+        await browser_service.initialize_browser()
+        await browser_service.local_test_authenticate()
+        
+        while not (await browser_service.get_auth_status())["auth_complete"]:   
+            print("Waiting for authentication to complete...")
+            await asyncio.sleep(1)
+
+        exam_request = ExamRequest(
+            license_type="B",  
+            test_type="practical driving",  
+            location=["Uppsala"],  
+            transmission_type="manual",  
+            time_preference=["earliest available in May"]  
+        )
+
+
+        await browser_service.start_booking(exam_request)
+
+    asyncio.run(main())
