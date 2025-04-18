@@ -133,16 +133,15 @@ class BrowserService:
                         
             # todo: refine this tasks
             task=f"""
-            1. Click "Boka prov"
+            1. click "Boka prov"
             2. choose and click {exam_request.license_type} type of exam
-            3. choose {exam_request.test_type} type of test
-            4. choose {', '.join(exam_request.location)} as test location
-            5. choose {', '.join(exam_request.transmission_type)} as transmission type
-            6. If there is a slot available in the preferred time mentioned in the {', '.join(exam_request.time_preference)}, click "Välj"
-            7. click that "trash-icon"(ta bort) to remove/cancel it from shopping cart
-            8. Click "Logga ut"
-            9. Then click "Ja, logga ut"
-            10. close the browser
+            3. in "Välj prov", choose {exam_request.test_type} type of test
+            4. in "Var vill du göra provet?", fill in and choose {', '.join(exam_request.location)} as test location, then click "bekräfta"
+            5. in "Välj bil att hyra från Trafikverket.", choose {', '.join(exam_request.transmission_type)} as transmission type
+            6. Check "Lediga provtider", and see if there is any slot available in the preferred time mentioned in the {', '.join(exam_request.time_preference)}, if so, pick one and click "Välj"
+            7. click "Logga ut"
+            8. Then click "Ja, logga ut"
+            9. close the browser
             """,
             llm=self.llm,
             browser_context=self.browser_context
@@ -196,7 +195,7 @@ if __name__ == "__main__":
             license_type="B",  
             test_type="practical driving",  
             location=["Uppsala"],  
-            transmission_type="manual",  
+            transmission_type="Manuell bil",  
             time_preference=["earliest available in May"]  
         )
 
