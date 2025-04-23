@@ -1,6 +1,6 @@
-from browser_use import Agent
-from browser_use.browser.context import BrowserContext
-from browser_use.browser.browser import Browser, BrowserConfig
+from browser_use import Agent, Browser, BrowserConfig
+from browser_use.browser.context import BrowserContext, BrowserContextConfig
+
 from langchain_openai import ChatOpenAI
 import asyncio
 import base64
@@ -11,6 +11,7 @@ class BrowserService:
     def __init__(self):
         self.current_qr_base64 = None
         self.auth_complete = False
+        self.browser = None
         self.browser_context = None
         self.browser_task = None
         self.llm = ChatOpenAI(model="gpt-4o-mini")
@@ -18,10 +19,29 @@ class BrowserService:
         self.qr_started = False
 
     async def initialize_browser(self):
+
         if not self.browser_context:
-            browser_config = BrowserConfig()
-            browser = Browser(config=browser_config)
-            self.browser_context = BrowserContext(browser=browser)
+            browser_config = BrowserConfig(
+                # headless=True,
+                # proxy <-> Standard Playwright proxy settings for using external proxy services. Might be useful for the furture
+                # wss_url (default: None) WebSocket URL for connecting to external browser providers (e.g., anchorbrowser.io, steel.dev, browserbase.com, browserless.io, TestingBot). -> Maybe we can use this for production
+                disable_security=True
+            )
+            self.browser = Browser(config=browser_config)
+
+            # todo: might not be needed, but I leave it here for now.
+            config = BrowserContextConfig(
+                # cookies_file="path/to/cookies.json",
+                # wait_for_network_idle_page_load_time=3.0,
+                # browser_window_size={'width': 1280, 'height': 1100},
+                # locale='en-US',
+                # user_agent='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/85.0.4183.102 Safari/537.36',
+                # highlight_elements=True,
+                # viewport_expansion=500,
+                allowed_domains=['fp.trafikverket.se'],
+            )
+
+            self.browser_context = BrowserContext(browser=self.browser, config=config)
             await self.browser_context.get_session()
             
 
@@ -119,6 +139,9 @@ class BrowserService:
         if not self.auth_complete:
             raise Exception("User not authenticated")
 
+
+        planner_llm = ChatOpenAI(model='o3-mini')
+
         # todo: need to work more on the tasks. -> "new test" and "reschedule test" is different
 
         # Create and run the agent with the browser context
@@ -132,6 +155,7 @@ class BrowserService:
             # """,
                         
             # todo: refine this tasks
+            # todo: maybe create several small agents instead of one big one?
             task=f"""
             1. click "Boka prov"
             2. choose and click {exam_request.license_type} type of exam
@@ -141,13 +165,33 @@ class BrowserService:
             6. Check "Lediga provtider", and see if there is any slot available in the preferred time mentioned in the {', '.join(exam_request.time_preference)}, if so, pick one and click "Välj"
             7. click "Logga ut"
             8. Then click "Ja, logga ut"
-            9. close the browser
             """,
             llm=self.llm,
+            planner_llm=planner_llm,
+            message_context="",
+            browser=self.browser,
             browser_context=self.browser_context
         )
         
         result = await agent.run()
+
+
+        # todo: not sure if this actually works
+        print(result.history.urls())              # List of visited URLs
+        print(result.history.screenshots())       # List of screenshot paths
+        print(result.history.action_names())      # Names of executed actions
+        print(result.history.extracted_content()) # Content extracted during execution
+        print(result.history.errors())           # Any errors that occurred
+        print(result.history.model_actions())     # All actions with their parameters
+
+        print(result.final_result())
+        print(result.is_done())
+        print(result.has_errors())
+        print(result.model_thoughts())
+        print(result.action_results())
+
+
+        await self.browser.close()
         return result
 
     # todo: not in use. probably can be removed?
@@ -196,7 +240,7 @@ if __name__ == "__main__":
             test_type="practical driving",  
             location=["Uppsala"],  
             transmission_type="Manuell bil",  
-            time_preference=["earliest available in May"]  
+            time_preference=["earliest available in June"]  
         )
 
 
