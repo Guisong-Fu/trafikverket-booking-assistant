@@ -140,7 +140,7 @@ class BrowserService:
             raise Exception("User not authenticated")
 
 
-        planner_llm = ChatOpenAI(model='o3-mini')
+        planner_llm = ChatOpenAI(model='gpt-4.1-nano')
 
         # todo: need to work more on the tasks. -> "new test" and "reschedule test" is different
 
@@ -158,17 +158,18 @@ class BrowserService:
             # todo: maybe create several small agents instead of one big one?
             task=f"""
             1. click "Boka prov"
-            2. choose and click {exam_request.license_type} type of exam
-            3. in "Välj prov", choose {exam_request.test_type} type of test
-            4. in "Var vill du göra provet?", fill in and choose {', '.join(exam_request.location)} as test location, then click "bekräfta"
-            5. in "Välj bil att hyra från Trafikverket.", choose {', '.join(exam_request.transmission_type)} as transmission type
-            6. Check "Lediga provtider", and see if there is any slot available in the preferred time mentioned in the {', '.join(exam_request.time_preference)}, if so, pick one and click "Välj"
-            7. click "Logga ut"
-            8. Then click "Ja, logga ut"
+            2. choose and click the specific {exam_request.license_type} type of exam, the exam type needs to match exactly {exam_request.test_type}
+            3. double check if that the exam type shown in "Vad vill du boka?" is the same as {exam_request.test_type}
+            4. in "Välj prov", choose {exam_request.test_type} type of test
+            5. in "Var vill du göra provet?", fill in and choose {', '.join(exam_request.location)} as test location, then click "bekräfta"
+            6. in "Välj bil att hyra från Trafikverket.", choose {exam_request.transmission_type} as transmission type
+            7. Check "Lediga provtider", and see if there is any slot available in the preferred time mentioned in the {', '.join(exam_request.time_preference)}, if so, pick one and click "Välj"
+            8. click "Logga ut"
+            9. Then click "Ja, logga ut"
             """,
             llm=self.llm,
             planner_llm=planner_llm,
-            message_context="",
+            message_context="Please note the official site is in Swedish, but the request from user can be in English. You will need to do some translation work.",
             browser=self.browser,
             browser_context=self.browser_context
         )
@@ -176,20 +177,19 @@ class BrowserService:
         result = await agent.run()
 
 
-        # todo: not sure if this actually works
-        print(result.history.urls())              # List of visited URLs
-        print(result.history.screenshots())       # List of screenshot paths
-        print(result.history.action_names())      # Names of executed actions
-        print(result.history.extracted_content()) # Content extracted during execution
-        print(result.history.errors())           # Any errors that occurred
-        print(result.history.model_actions())     # All actions with their parameters
+        # todo: this can be tested in a simple browser use test
+        # print(result.urls())              # List of visited URLs
+        # print(result.screenshots())       # List of screenshot paths
+        # print(result.action_names())      # Names of executed actions
+        # print(result.extracted_content()) # Content extracted during execution
+        # print(result.errors())           # Any errors that occurred
+        # print(result.model_actions())     # All actions with their parameters
 
-        print(result.final_result())
-        print(result.is_done())
-        print(result.has_errors())
-        print(result.model_thoughts())
-        print(result.action_results())
-
+        # print(result.final_result())
+        # print(result.is_done())
+        # print(result.has_errors())
+        # print(result.model_thoughts())
+        # print(result.action_results())
 
         await self.browser.close()
         return result
@@ -225,6 +225,14 @@ if __name__ == "__main__":
     from dotenv import load_dotenv
     load_dotenv()
 
+    exam_request = ExamRequest(
+        license_type="B",  
+        test_type="practical driving",  
+        location=["Uppsala"],  
+        transmission_type="Manuell bil",  
+        time_preference=["earliest available in June"]  
+    )
+
     browser_service = BrowserService()
 
     async def main():
@@ -234,15 +242,6 @@ if __name__ == "__main__":
         while not (await browser_service.get_auth_status())["auth_complete"]:   
             print("Waiting for authentication to complete...")
             await asyncio.sleep(1)
-
-        exam_request = ExamRequest(
-            license_type="B",  
-            test_type="practical driving",  
-            location=["Uppsala"],  
-            transmission_type="Manuell bil",  
-            time_preference=["earliest available in June"]  
-        )
-
 
         await browser_service.start_booking(exam_request)
 

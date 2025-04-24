@@ -1,3 +1,21 @@
+Here is what we can do: 
+1. print more information and see where the problem is
+2. try multiple agents with tasks on its own
+
+
+This looks cool: -> they are all YC companies~ 
+https://mem0.ai/
+https://lmnr.ai/
+
+
+
+Here are the features that we can refer to:
+https://github.com/browser-use/browser-use/blob/main/examples/features/initial_actions.py
+
+
+
+
+
 Use ReAct in the prompt, it's indeed art to write good prompt.
 
 something like this. Maybe we do not need to write it on our own, LangChain templates may have something we can reuse
