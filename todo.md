@@ -3,6 +3,13 @@ Here is what we can do:
 2. try multiple agents with tasks on its own
 
 
+It has to find the exact component to click one!
+It's too much of hassle to let LLM to decide which one to click on! And it's way too slow, and potentially costly    
+
+
+
+
+
 This looks cool: -> they are all YC companies~ 
 https://mem0.ai/
 https://lmnr.ai/
