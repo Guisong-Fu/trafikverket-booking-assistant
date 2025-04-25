@@ -45,6 +45,22 @@ class BrowserService:
             await self.browser_context.get_session()
             
 
+    """
+    Here is something:
+    instead of choosing login, and show the QR, we can go to "meny" and choose "Boka prov" or "Mina prov" directly.
+    And once the login session is completed, we can just navigate around
+    https://fp.trafikverket.se/Boka/ng/licence
+    https://fp.trafikverket.se/Boka/ng/examinations
+
+    I can also use the "Boka prov" button to navigate to the booking page, and then I can use the "Mina prov" button to navigate to the examinations page.
+
+    Or, maybe I can keep the Get QR function, and after authentication, and use Controller to go to `https://fp.trafikverket.se/Boka/ng/examinations` to check if there is already booking booked.
+    However, some token will be saved though if we directly get the QR code to the examinations page.
+
+    """
+
+
+
     async def get_qr_code(self):
         """Get the current QR code, refreshing it if needed"""
         print("Getting QR code")
@@ -146,14 +162,7 @@ class BrowserService:
 
         # Create and run the agent with the browser context
         # todo: this tasks sort of works, but it does not close the browser after finished
-        agent = Agent(
-            # task=f"""
-            # 1. Click "Boka prov"
-            # 2. Click "Logga ut"
-            # 3. Then click "Ja, logga ut"
-            # 4. close the browser
-            # """,
-                        
+        agent = Agent(                        
             # todo: refine this tasks
             # todo: maybe create several small agents instead of one big one?
             task=f"""
@@ -174,7 +183,7 @@ class BrowserService:
             browser_context=self.browser_context
         )
         
-        result = await agent.run()
+        result = await agent.run(max_steps=30)
 
 
         # todo: this can be tested in a simple browser use test
