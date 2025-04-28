@@ -8,6 +8,16 @@ import asyncio
 from dotenv import load_dotenv
 load_dotenv()
 
+"""
+Controller features:
+get_dropdown_options? how to get index?
+click_element_by_index?
+
+
+"""
+
+
+
 
 controller = Controller()
 

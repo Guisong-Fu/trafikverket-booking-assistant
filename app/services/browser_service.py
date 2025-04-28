@@ -150,6 +150,9 @@ class BrowserService:
             "auth_complete": self.auth_complete,
             "message": "Authenticated" if self.auth_complete else "Not authenticated"
         }
+    
+
+
 
     async def start_booking(self, exam_request: ExamRequest):
         if not self.auth_complete:
@@ -162,28 +165,120 @@ class BrowserService:
 
         # Create and run the agent with the browser context
         # todo: this tasks sort of works, but it does not close the browser after finished
+
+
+        # todo: really, try with multiple agents, and with specific controller specified
+
+
         agent = Agent(                        
             # todo: refine this tasks
             # todo: maybe create several small agents instead of one big one?
             task=f"""
-            1. click "Boka prov"
-            2. choose and click the specific {exam_request.license_type} type of exam, the exam type needs to match exactly {exam_request.test_type}
-            3. double check if that the exam type shown in "Vad vill du boka?" is the same as {exam_request.test_type}
-            4. in "Välj prov", choose {exam_request.test_type} type of test
-            5. in "Var vill du göra provet?", fill in and choose {', '.join(exam_request.location)} as test location, then click "bekräfta"
-            6. in "Välj bil att hyra från Trafikverket.", choose {exam_request.transmission_type} as transmission type
-            7. Check "Lediga provtider", and see if there is any slot available in the preferred time mentioned in the {', '.join(exam_request.time_preference)}, if so, pick one and click "Välj"
-            8. click "Logga ut"
-            9. Then click "Ja, logga ut"
+            ### Prompt for Swedish Driving License Booking Agent 
+
+            **Objective:**
+            Visit [Trafikverket](https://fp.trafikverket.se/Boka/ng/licence), click the desired license type, then in the actual booking page(url started with https://fp.trafikverket.se/Boka/ng/search/ ), fill in the information accordingly and see if there is any slot that meets user's requirment, if so, return the time information of that slot , if not, do nothing.
+
+            **Important:**
+            - The site is all in Swedish, but the request from user can be in whatever language they want. You need to be able to understand it. 
+            - Wait for each element to load before interacting
+            - Make sure all the information is correctly set, license type, exam location, type of rental car.
+            - Scroll only if it's needed
+            ---
+
+            Here are the specific steps:
+
+            ---
+
+            ### Step 1: Navigate to the booking page
+            - Go to [Trafikverket](https://fp.trafikverket.se/Boka/ng/licence)
+
+            ####Expected Result 
+            - all types of licenses are displayed
+
+            ---
+
+            ### Step 2: Choose the desired license type
+
+            choose and click the specific {exam_request.license_type} type of exam, the exam type needs to match exactly {exam_request.test_type}
+
+
+            ####Expected Result 
+            - Once done, you should be nevigated to a page with URL started with `https://fp.trafikverket.se/Boka/ng/search/`. Make sure the selected option from `Vad vill du boka?` matches exactly {exam_request.test_type}, if not, click the section block and choose the right one.
+            - The exact {exam_request.license_type} is chosen
+
+
+
+            ---
+            ### Step 3: Choose the desired test type(practical driving test or theory test)
+
+
+            in "Välj prov", choose {exam_request.test_type} type of test
+            The options can be Practical Driving test or Theory test. 
+
+
+            ####Expected Result 
+            - The exact {exam_request.test_type} is chosen
+
+            ---
+            ### Step 4: Fill in the diesred test location
+
+
+            - click "Var vill du göra provet?", and it will pop out a inside window `Välj provort`, in `Filtrera på ort`, type in `Sok ort` with choose {', '.join(exam_request.location)}  one by one, if it's gets displayed, then click that location, once clicked, the background of that location will be turned into dark red, and "right arrow icon" will become "right icon", and `Välj provort (0/4)` will be `Välj provort (1/4)` or `Välj provort (2/4)` up to `Välj provort (4/4)`
+
+
+
+            ####Expected Result 
+            - all desired locations for test are correctly selected.
+            - only the desired ones are chosen, nothing more
+
+            ---
+            ### Step 5: Confirm chosen location
+            Click `bekräfta`, once done, that window shall be closed, and the locations dispayed in `Var vill du göra provet?` match exactly {', '.join(exam_request.location)}.
+            If not matched, then repat Step 4.
+
+            ####Expected Result 
+            - locations dispayed in `Var vill du göra provet?` match exactly {', '.join(exam_request.location)}
+
+
+            ---
+            ### Step 6: Choose the desired rental car type(automatic or manual)
+            in "Välj bil att hyra från Trafikverket.", choose {exam_request.transmission_type} 
+
+
+            ####Expected Result 
+            - The exact {exam_request.transmission_type} is chosen
+
+            ---
+            ### Step 7: Check and see if there is the time slot 
+
+            Under `Lediga provtider`, ta list of available slots will be displaed
+            - see if there is a slot that matches the preferred time mentioned in the {', '.join(exam_request.time_preference)}, if so, return that result
+
+
+            ####Expected Result 
+            - if there is such slot that matches the the time perference, then return that time information of that slot
+            - if no, then return not found
+
+            ---
+            ### Step 8: log out
+            - click "Logga ut"
+            - Then click "Ja, logga ut"
+
+
+            ####Expected Result 
+            - Successfully logged out
             """,
             llm=self.llm,
-            planner_llm=planner_llm,
-            message_context="Please note the official site is in Swedish, but the request from user can be in English. You will need to do some translation work.",
+            # planner_llm=planner_llm,
+            message_context="Please note the official site is in Swedish, but the request from user can be in English. You will need to do some translation work. No need to scroll the page",
             browser=self.browser,
             browser_context=self.browser_context
         )
         
         result = await agent.run(max_steps=30)
+
+
 
 
         # todo: this can be tested in a simple browser use test
