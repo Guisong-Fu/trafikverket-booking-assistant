@@ -1,3 +1,10 @@
+1. improve prompt -> how we can make the prompt better, I had a feeling that the current prompt is a bottleneck
+2. understand better about that controller -> add got to page, instead of click -> this is more or less only for testing purpose, in the real world, we may just use playwright to go to that page to save some token(it will save some token, right)?
+3. try to see if there is any other controller I can use or implement -> for example, instead of selecting index, try select text
+4. try with multiple agents instead of one big
+
+
+
 Here is what we can do: 
 1. print more information and see where the problem is
 2. try multiple agents with tasks on its own

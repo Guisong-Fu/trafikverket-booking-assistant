@@ -170,104 +170,114 @@ class BrowserService:
         # todo: really, try with multiple agents, and with specific controller specified
 
 
-        agent = Agent(                        
-            # todo: refine this tasks
-            # todo: maybe create several small agents instead of one big one?
-            task=f"""
-            ### Prompt for Swedish Driving License Booking Agent 
+        agent = Agent(
+            task = f"""
+            ### Prompt for Swedish Driving-License Booking Agent
 
-            **Objective:**
-            Visit [Trafikverket](https://fp.trafikverket.se/Boka/ng/licence), click the desired license type, then in the actual booking page(url started with https://fp.trafikverket.se/Boka/ng/search/ ), fill in the information accordingly and see if there is any slot that meets user's requirment, if so, return the time information of that slot , if not, do nothing.
+            **Objective:**  
+            Automate booking a B-category (Personbil) driving-license exam on Trafikverket. Navigate from login through to the slot list, fill in exactly what the user requested, then return a matching slot’s date & time (or “not found” if none).
 
-            **Important:**
-            - The site is all in Swedish, but the request from user can be in whatever language they want. You need to be able to understand it. 
-            - Wait for each element to load before interacting
-            - Make sure all the information is correctly set, license type, exam location, type of rental car.
-            - Scroll only if it's needed
-            ---
-
-            Here are the specific steps:
+            **Global Instructions:**  
+            - The site text is Swedish; user requests may be in any language. Interpret correctly.  
+            - ALWAYS wait for each UI element to appear (buttons, dropdowns, modals) before interacting.  
+            - After every selection or click, VERIFY the UI reflects the choice.  
+            - Scroll only if the target element is not in view.  
+            - On any irrecoverable error (e.g. town not found), abort and return an error message.
 
             ---
 
-            ### Step 1: Navigate to the booking page
-            - Go to [Trafikverket](https://fp.trafikverket.se/Boka/ng/licence)
+            ## Step 1: Log In & Navigate  
+            1. **Go to** `https://fp.trafikverket.se/Boka/ng/licence`.  
+            2. **(If not already)** log in via e-ID/BankID.  
+            3. **After success**, WAIT for the dashboard with the “Boka prov” card.
 
-            ####Expected Result 
-            - all types of licenses are displayed
+            **Expected:** The “Boka prov” button is visible.
+
+            ---
+
+            ## Step 2: Click “Boka prov”  
+            1. **Click** the “Boka prov” card/button.  
+            2. WAIT until the URL begins with `https://fp.trafikverket.se/Boka/ng/search/`.
+
+            **Expected:** You see a form with fields:  
+            - “Vad vill du boka?”  
+            - “Välj prov”  
+            - “Var vill du göra provet?”  
+            - “Välj bil att hyra…” (for driving) or “Välj språk” (for theory)
 
             ---
 
-            ### Step 2: Choose the desired license type
+            ## Step 3: Select License Category  
+            1. **In** the “Vad vill du boka?” dropdown, **select** the option exactly equal to `{exam_request.license_type}` (e.g. “B – Personbil”).  
+            2. WAIT for the dropdown to reflect your choice.
 
-            choose and click the specific {exam_request.license_type} type of exam, the exam type needs to match exactly {exam_request.test_type}
-
-
-            ####Expected Result 
-            - Once done, you should be nevigated to a page with URL started with `https://fp.trafikverket.se/Boka/ng/search/`. Make sure the selected option from `Vad vill du boka?` matches exactly {exam_request.test_type}, if not, click the section block and choose the right one.
-            - The exact {exam_request.license_type} is chosen
-
-
+            **Expected:** Field reads `{exam_request.license_type}`.
 
             ---
-            ### Step 3: Choose the desired test type(practical driving test or theory test)
 
+            ## Step 4: Select Test Type  
+            1. **Open** the “Välj prov” dropdown.  
+            2. **Click** the item exactly matching `{exam_request.test_type}` (“Körprov” or “Teoriprov”).  
+            3. WAIT for the selection to stick.
 
-            in "Välj prov", choose {exam_request.test_type} type of test
-            The options can be Practical Driving test or Theory test. 
-
-
-            ####Expected Result 
-            - The exact {exam_request.test_type} is chosen
+            **Expected:** Field reads `{exam_request.test_type}`.
 
             ---
-            ### Step 4: Fill in the diesred test location
 
+            ## Step 5: (Driving Only) Choose Car Transmission  
+            **If** `{exam_request.test_type}` == "Körprov":  
+            1. **Open** the “Välj bil att hyra från Trafikverket” dropdown.  
+            2. **Select** `{exam_request.transmission_type}` (“Manuell bil” or “Automat”).  
+            3. WAIT for the field to update.  
 
-            - click "Var vill du göra provet?", and it will pop out a inside window `Välj provort`, in `Filtrera på ort`, type in `Sok ort` with choose {', '.join(exam_request.location)}  one by one, if it's gets displayed, then click that location, once clicked, the background of that location will be turned into dark red, and "right arrow icon" will become "right icon", and `Välj provort (0/4)` will be `Välj provort (1/4)` or `Välj provort (2/4)` up to `Välj provort (4/4)`
-
-
-
-            ####Expected Result 
-            - all desired locations for test are correctly selected.
-            - only the desired ones are chosen, nothing more
+            **Expected:** Field reads `{exam_request.transmission_type}`.
 
             ---
-            ### Step 5: Confirm chosen location
-            Click `bekräfta`, once done, that window shall be closed, and the locations dispayed in `Var vill du göra provet?` match exactly {', '.join(exam_request.location)}.
-            If not matched, then repat Step 4.
 
-            ####Expected Result 
-            - locations dispayed in `Var vill du göra provet?` match exactly {', '.join(exam_request.location)}
+            ## Step 6: Pick Test Location(s)
 
+            1. **Click** the “Var vill du göra provet?” field.  
+            2. WAIT until the “Välj provort” modal appears and the “Sök ort” input is visible.
 
-            ---
-            ### Step 6: Choose the desired rental car type(automatic or manual)
-            in "Välj bil att hyra från Trafikverket.", choose {exam_request.transmission_type} 
+            3. **For each** town in `{exam_request.location}` **(in order)**:  
+            a. **Type** the full town name into “Sök ort.”  
+            b. WAIT for the suggestion list to refresh.  
+            c. **Click** the suggestion whose text exactly equals the town.  
+            d. VERIFY:  
+                - That item’s background turns dark red with a ✔️ icon.  
+                - The counter increments from “Välj provort (n/4)” to “Välj provort (n+1/4).”  
+            e. **If** no exact suggestion appears within 5 s, ABORT with “Location `<town>` not found.”
 
-
-            ####Expected Result 
-            - The exact {exam_request.transmission_type} is chosen
-
-            ---
-            ### Step 7: Check and see if there is the time slot 
-
-            Under `Lediga provtider`, ta list of available slots will be displaed
-            - see if there is a slot that matches the preferred time mentioned in the {', '.join(exam_request.time_preference)}, if so, return that result
-
-
-            ####Expected Result 
-            - if there is such slot that matches the the time perference, then return that time information of that slot
-            - if no, then return not found
+            4. **Click** the “Bekräfta” button.  
+            5. WAIT for the modal to close.  
+            6. VERIFY the main field now lists exactly `{', '.join(exam_request.location)}` (comma-separated).
 
             ---
-            ### Step 8: log out
-            - click "Logga ut"
-            - Then click "Ja, logga ut"
 
+            ## Step 7: Retrieve Available Slots  
+            1. SCROLL down (if needed) to “Lediga provtider.”  
+            2. ITERATE through each listed slot row:  
+            - Date & Time  
+            - Location  
+            - Price  
 
-            ####Expected Result 
-            - Successfully logged out
+            3. **If** any slot’s date/time matches the user’s `{exam_request.time_preference}` criteria, STOP and **return** that date & time.  
+            4. **If** none match, **return** “not found.”
+
+            ---
+
+            ## Step 8: (Optional) Reserve & Log Out  
+            **If** you want to reserve immediately:  
+            1. **Click** that slot’s “Välj” button.  
+            2. WAIT for the “Varukorg” drawer to appear showing the correct slot + 15 min timer.  
+            3. **Click** “Gå vidare” to continue to payment (or)  
+            **OR** click the trash icon to cancel and end.  
+
+            **Then**  
+            4. **Click** “Logga ut” in the header.  
+            5. WAIT for the confirmation dialog, then click “Ja, logga ut.”  
+            6. VERIFY you’re back at the landing page.
+
             """,
             llm=self.llm,
             # planner_llm=planner_llm,

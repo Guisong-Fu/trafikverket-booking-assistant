@@ -186,10 +186,10 @@ VALID_LOCATIONS = [
 ] 
 
 
+# todo: add language list
 
 
 
-# add support for language preference
 # Language Preference: Theory tests are available in multiple languages, including English, Arabic, Somali, and more
 
 

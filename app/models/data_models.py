@@ -9,7 +9,14 @@ class ExamRequest(BaseModel):
     test_type: str = Field(
         None, description="Type of test (practical driving test or theory test)"
     )
-    # todo: add support for language preference
+
+    theory_test_language: Optional[str] = Field(
+        default=None,
+        description="Language preference for the theory test",
+        examples=["Swedish", "English"]
+    )
+    
+    # todo: double think of these namings
     transmission_type: Optional[str] = Field(
         default=None,
         description="Transmission type (manual or automatic)",
