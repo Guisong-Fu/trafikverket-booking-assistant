@@ -21,6 +21,9 @@ if it's new session -> it should not check auth, it should generate QR
 uv run uvicorn app.main:app --reload
 
 uv run streamlit run st-frontend.py
+
+
+uv run -m app.services.browser_service
 ```
 
 

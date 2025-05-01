@@ -1,3 +1,29 @@
+2025-05-01:
+Chat
+
+After all information is collected, it asks for "is this information correct?"
+then user needs to reply "yes", and then there is this block 
+
+
+
+
+
+
+
+
+
+
+
+The tasks/steps in browser-use can be improved:
+1. There is one time, that there is slot in 06-02 and 06-03, it chose 06-03, but 06-02 is available.
+2. and there is one case, that it kept chosing available slots without stopping.
+3. confirm booking and exit logic is not really implemented/working.
+
+
+
+
+
+
 1. improve prompt -> how we can make the prompt better, I had a feeling that the current prompt is a bottleneck
 2. understand better about that controller -> add got to page, instead of click -> this is more or less only for testing purpose, in the real world, we may just use playwright to go to that page to save some token(it will save some token, right)?
 3. try to see if there is any other controller I can use or implement -> for example, instead of selecting index, try select text
@@ -231,4 +257,10 @@ Possible options:
 
 Be prepared that the user may have spelling incorrect.
 """
+
+
+
+
+
+
 

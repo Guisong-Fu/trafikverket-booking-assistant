@@ -188,8 +188,8 @@ if st.session_state.confirmation_mode:
 
 
 # QR Code section
-if st.session_state.show_qr:
-# if False:
+#if st.session_state.show_qr:
+if False:
     st.write("---")
     st.subheader("Authentication")
     
@@ -239,15 +239,6 @@ if st.session_state.show_qr:
     
     
 if st.session_state.auth_complete:
-
-    # Basic test exam request
-    # test_request = {
-    #     "license_type": "B",
-    #     "test_type": "theory",
-    #     "transmission_type": "manual",  # Add this required field
-    #     "location": ["Uppsala"],
-    #     "time_preference": [{"preference": "earliest available"}]  # Add this required field
-    # }
 
     # Handle both dictionary and ExamRequest objects
     exam_request_data = st.session_state.exam_request
