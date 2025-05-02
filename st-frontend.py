@@ -168,9 +168,11 @@ for message in st.session_state.chat_history:
         st.text_area("Assistant:", value=message["content"], height=70, disabled=True, key=f"msg_{id(message)}")
 
 # Input section
-input_placeholder = "Type your booking request here..."
-st.text_area("Your request:", key="current_input", value=st.session_state.current_input, height=100, placeholder=input_placeholder)
-st.button("Send", on_click=handle_chat_submit)
+# Only show input if not in confirmation mode
+if not st.session_state.confirmation_mode:
+    input_placeholder = "Type your booking request here..."
+    st.text_area("Your request:", key="current_input", value=st.session_state.current_input, height=100, placeholder=input_placeholder)
+    st.button("Send", on_click=handle_chat_submit)
 
 # Confirmation section
 if st.session_state.confirmation_mode:
@@ -178,7 +180,8 @@ if st.session_state.confirmation_mode:
 
     print("Exam Request", st.session_state.exam_request)
 
-    st.write(create_summary(st.session_state.exam_request))
+    # todo: maybe we shall use LLM to write the summary
+    # st.write(create_summary(st.session_state.exam_request))
 
     col1, col2 = st.columns(2)
     with col1:
@@ -188,8 +191,8 @@ if st.session_state.confirmation_mode:
 
 
 # QR Code section
-#if st.session_state.show_qr:
-if False:
+if st.session_state.show_qr:
+# if False:
     st.write("---")
     st.subheader("Authentication")
     

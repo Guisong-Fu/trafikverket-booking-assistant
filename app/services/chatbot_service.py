@@ -217,8 +217,6 @@ Guidelines:
 3. Validate all provided information against the valid options
 4. Be conversational but efficient
 5. For time preferences, help structure them with priorities
-6. Once all information is collected, provide a clear summary and ask for confirmation, please include "Is this information correct?" in the message
-7. After confirmation, return the data in the exact JSON format specified
 
 Current collected information:
 {collected_info}
@@ -446,6 +444,7 @@ class DriverLicenseExamBot:
 
                 # Check again if we've collected all required info after processing the response
                 # If all information is collected, generate confirmation
+                # todo: 05-02 here is the confirmation prompt! 
                 if not self._get_missing_info():
                     response = f"Great! Now we have all information. {CONFIRMATION_PROMPT}"
                     self.memory.chat_memory.add_ai_message(response)

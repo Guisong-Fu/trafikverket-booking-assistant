@@ -1,3 +1,18 @@
+05-02:
+1. loop, every 10 mins, do something.
+2. action result -> how to send the notification to user?
+3. reliability of chatbot and browser-use
+
+
+
+
+
+
+
+
+
+
+
 2025-05-01:
 Chat
 
