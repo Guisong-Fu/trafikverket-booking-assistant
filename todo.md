@@ -1,14 +1,17 @@
-05-02:
+05-03:
 1. loop, every 10 mins, do something.
 2. action result -> how to send the notification to user?
 3. reliability of chatbot and browser-use
 
+Browser-use this step is not reliable -> It keeps scrolling, and book random slot.
+-> One idea is to, simply let this step return results, and create another agent that does the actual booking
+  ## Step 7: Retrieve Available Slots
 
 
+Chat -> sometimes -> rare though. it does proceed without having all the information
 
 
-
-
+Step 7 & 8: they work together -> double check this
 
 
 

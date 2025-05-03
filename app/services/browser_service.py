@@ -255,28 +255,25 @@ class BrowserService:
             ---
 
             ## Step 7: Retrieve Available Slots  
-            1. SCROLL down (if needed) to “Lediga provtider.”  
-            2. ITERATE through each listed slot row:  
-            - Date & Time  
-            - Location  
-            - Price  
-
-            3. **If** any slot’s date/time matches the user’s `{exam_request.time_preference}` criteria, STOP and **return** that date & time.  
+            1. Check “Lediga provtider”, and wait for the list to load.
+            2. ITERATE through each listed slot row from top to bottom, and check the date and time, scroll down if needed.
+            3. **If** any slot’s date/time matches the user’s `{exam_request.time_preference}` criteria, STOP and **return** that date & time.
             4. **If** none match, **return** “not found.”
 
             ---
 
-            ## Step 8: (Optional) Reserve & Log Out  
-            **If** you want to reserve immediately:  
+            ## Step 8: Reserve
             1. **Click** that slot’s “Välj” button.  
             2. WAIT for the “Varukorg” drawer to appear showing the correct slot + 15 min timer.  
-            3. **Click** “Gå vidare” to continue to payment (or)  
-            **OR** click the trash icon to cancel and end.  
+            3. **Click** “Gå vidare” to continue
+            4. The URL will change to `https://fp.trafikverket.se/Boka/ng/reservation`, VERIFY you’re back at this page.
+            5. **Click** “Avbryt” to cancel the reservation.
+            6. The URL will change to `https://fp.trafikverket.se/Boka/ng/`, VERIFY you’re back at this page.
 
-            **Then**  
-            4. **Click** “Logga ut” in the header.  
-            5. WAIT for the confirmation dialog, then click “Ja, logga ut.”  
-            6. VERIFY you’re back at the landing page.
+            ## Step 9: Log Out
+            1. **Click** “Logga ut” in the header.  
+            2. WAIT for the confirmation dialog, then click “Ja, logga ut.”  
+            3. VERIFY you’re back at the landing page.
 
             """,
             llm=self.llm,
@@ -288,7 +285,8 @@ class BrowserService:
         
         result = await agent.run(max_steps=30)
 
-
+        print("Result!")
+        print(type(result))
 
 
         # todo: this can be tested in a simple browser use test

@@ -193,6 +193,13 @@ VALID_LOCATIONS = [
 # Language Preference: Theory tests are available in multiple languages, including English, Arabic, Somali, and more
 
 
+"""
+Let's think about the "confirmation" part. Maybe we do want to include it in this prompt, and let LLM to generate the confirmation message.
+
+6. Once all information is collected, provide a clear summary and ask for confirmation, please include "Is this information correct?" in the message
+7. After confirmation, return the data in the exact JSON format specified
+"""
+
 SYSTEM_PROMPT_TEMPLATE = """You are a friendly and efficient assistant helping users register for driver's license exams.
         
 You need to collect the following information:
