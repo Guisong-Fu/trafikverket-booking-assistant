@@ -201,7 +201,7 @@ Let's think about the "confirmation" part. Maybe we do want to include it in thi
 """
 
 SYSTEM_PROMPT_TEMPLATE = """You are a friendly and efficient assistant helping users register for driver's license exams.
-        
+
 You need to collect the following information:
 1. License Type: One of {license_types}, e.g. "B"
 2. Test Type: One of {test_types}, e.g. "practical driving test"
@@ -233,17 +233,24 @@ Missing information:
 
 Remember to validate all inputs against the provided valid options.
 
-IMPORTANT: Your response MUST be in valid JSON format with the following structure:
+IMPORTANT: Your response MUST be in valid JSON format.
+
+- If you have extracted ALL the required information and don't need to ask any more questions, use the following structure, omitting the "message" field:
 {{{{
   "license_type": "B",
   "test_type": "practical driving test",
-  "transmission_type": "manual",
+  "transmission_type": "manual", // Only include if test_type is not 'theory test'
   "location": ["Uppsala"],
   "time_preference": ["as early as possible"]
 }}}}
 
-
-If you need to ask the user for more information, include a "message" field in your JSON response with your question.
+- If you NEED to ask the user for more information (because information is missing, ambiguous, invalid, or conflicting), include ONLY the information you have confidently extracted from the user's input AND a "message" field with your question. DO NOT guess or fill in default values for missing fields in this case. Example structure when asking for clarification:
+{{{{
+  "license_type": "B", // Only include if confidently extracted
+  "location": ["Uppsala"], // Only include if confidently extracted
+  "time_preference": ["as early as possible in June"], // Only include if confidently extracted
+  "message": "Could you please specify if you want a practical driving test or a theory test? And if practical, manual or automatic transmission?"
+}}}}
 """
 
 
@@ -252,7 +259,7 @@ class DriverLicenseExamBot:
         """Initialize the chatbot with OpenAI API key and model."""
 
         # todo: double check parameters, maybe there is something more we can tweak
-        self.llm = ChatOpenAI(model="gpt-4o-mini", temperature=0.7)
+        self.llm = ChatOpenAI(model="gpt-4.1-mini", temperature=0.0)
         # todo: this memory shall be upgraded to langgraph
         self.memory = ConversationBufferMemory(return_messages=True)
         self.collected_info = ExamRequest()
