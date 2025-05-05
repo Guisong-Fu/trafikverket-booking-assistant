@@ -14,7 +14,7 @@ class BrowserService:
         self.browser = None
         self.browser_context = None
         self.browser_task = None
-        self.llm = ChatOpenAI(model="gpt-4o-mini")
+        self.llm = ChatOpenAI(model="gpt-4.1-mini") # o4-mini, gpt-4.1-mini
 
         self.qr_started = False
 
@@ -158,9 +158,6 @@ class BrowserService:
         if not self.auth_complete:
             raise Exception("User not authenticated")
 
-
-        planner_llm = ChatOpenAI(model='gpt-4.1-nano')
-
         # todo: need to work more on the tasks. -> "new test" and "reschedule test" is different
 
         # Create and run the agent with the browser context
@@ -175,7 +172,8 @@ class BrowserService:
             ### Prompt for Swedish Driving-License Booking Agent
 
             **Objective:**  
-            Automate booking a B-category (Personbil) driving-license exam on Trafikverket. Navigate from login through to the slot list, fill in exactly what the user requested, then return a matching slot’s date & time (or “not found” if none).
+            Automate booking driving-license exam on Trafikverket. 
+            Navigate from login through to the slot list, fill in exactly what the user requested, then reserve the best matching slot and proceed to payment.
 
             **Global Instructions:**  
             - The site text is Swedish; user requests may be in any language. Interpret correctly.  
@@ -189,26 +187,26 @@ class BrowserService:
             ## Step 1: Log In & Navigate  
             1. **Go to** `https://fp.trafikverket.se/Boka/ng/licence`.  
             2. **(If not already)** log in via e-ID/BankID.  
-            3. **After success**, WAIT for the dashboard with the “Boka prov” card.
+            3. **After success**, WAIT for the dashboard with the "Boka prov" card.
 
-            **Expected:** The “Boka prov” button is visible.
+            **Expected:** The "Boka prov" button is visible.
 
             ---
 
-            ## Step 2: Click “Boka prov”  
-            1. **Click** the “Boka prov” card/button.  
+            ## Step 2: Click "Boka prov"  
+            1. **Click** the "Boka prov" card/button.  
             2. WAIT until the URL begins with `https://fp.trafikverket.se/Boka/ng/search/`.
 
             **Expected:** You see a form with fields:  
-            - “Vad vill du boka?”  
-            - “Välj prov”  
-            - “Var vill du göra provet?”  
-            - “Välj bil att hyra…” (for driving) or “Välj språk” (for theory)
+            - "Vad vill du boka?"  
+            - "Välj prov"  
+            - "Var vill du göra provet?"  
+            - "Välj bil att hyra…" (for driving) or "Välj språk" (for theory)
 
             ---
 
             ## Step 3: Select License Category  
-            1. **In** the “Vad vill du boka?” dropdown, **select** the option exactly equal to `{exam_request.license_type}` (e.g. “B – Personbil”).  
+            1. **In** the "Vad vill du boka?" dropdown, **select** the option exactly equal to `{exam_request.license_type}` (e.g. "B – Personbil").  
             2. WAIT for the dropdown to reflect your choice.
 
             **Expected:** Field reads `{exam_request.license_type}`.
@@ -216,8 +214,8 @@ class BrowserService:
             ---
 
             ## Step 4: Select Test Type  
-            1. **Open** the “Välj prov” dropdown.  
-            2. **Click** the item exactly matching `{exam_request.test_type}` (“Körprov” or “Teoriprov”).  
+            1. **Open** the "Välj prov" dropdown.  
+            2. **Click** the item exactly matching `{exam_request.test_type}` ("Körprov" or "Teoriprov").  
             3. WAIT for the selection to stick.
 
             **Expected:** Field reads `{exam_request.test_type}`.
@@ -226,8 +224,8 @@ class BrowserService:
 
             ## Step 5: (Driving Only) Choose Car Transmission  
             **If** `{exam_request.test_type}` == "Körprov":  
-            1. **Open** the “Välj bil att hyra från Trafikverket” dropdown.  
-            2. **Select** `{exam_request.transmission_type}` (“Manuell bil” or “Automat”).  
+            1. **Open** the "Välj bil att hyra från Trafikverket" dropdown.  
+            2. **Select** `{exam_request.transmission_type}` ("Manuell bil" or "Automat").  
             3. WAIT for the field to update.  
 
             **Expected:** Field reads `{exam_request.transmission_type}`.
@@ -236,59 +234,49 @@ class BrowserService:
 
             ## Step 6: Pick Test Location(s)
 
-            1. **Click** the “Var vill du göra provet?” field.  
-            2. WAIT until the “Välj provort” modal appears and the “Sök ort” input is visible.
+            1. **Click** the "Var vill du göra provet?" field.  
+            2. WAIT until the "Välj provort" modal appears and the "Sök ort" input is visible.
 
             3. **For each** town in `{exam_request.location}` **(in order)**:  
-            a. **Type** the full town name into “Sök ort.”  
-            b. WAIT for the suggestion list to refresh.  
-            c. **Click** the suggestion whose text exactly equals the town.  
-            d. VERIFY:  
-                - That item’s background turns dark red with a ✔️ icon.  
-                - The counter increments from “Välj provort (n/4)” to “Välj provort (n+1/4).”  
-            e. **If** no exact suggestion appears within 5 s, ABORT with “Location `<town>` not found.”
+                a. **Type** the full town name into "Sök ort."  
+                b. WAIT for the suggestion list to refresh.  
+                c. **Click** the suggestion whose text exactly equals the town.  
+                d. VERIFY:  
+                    - That item's background turns dark red with a ✔️ icon.  
+                    - The counter increments from "Välj provort (n/4)" to "Välj provort (n+1/4)."  
+                e. **If** no exact suggestion appears within 5 s, ABORT with "Location `<town>` not found."
 
-            4. **Click** the “Bekräfta” button.  
+            4. **Click** the "Bekräfta" button.  
             5. WAIT for the modal to close.  
             6. VERIFY the main field now lists exactly `{', '.join(exam_request.location)}` (comma-separated).
 
             ---
 
-            ## Step 7: Retrieve Available Slots  
-            1. Check “Lediga provtider”, and wait for the list to load.
-            2. ITERATE through each listed slot row from top to bottom, and check the date and time, scroll down if needed.
-            3. **If** any slot’s date/time matches the user’s `{exam_request.time_preference}` criteria, STOP and **return** that date & time.
-            4. **If** none match, **return** “not found.”
-
+            ## Step 7: Retrieve Available Slots & Reserve
+            1. **Wait** for the "Lediga provtider" header or container to be visible on the page.  
+            2. **Extract** the list of slots (date, time, and the associated "Välj" button element or selector).  
+            3. **From** that list, pick the slot whose date/time best matches `{exam_request.time_preference}`.  
+            4. **Click** the chosen slot's "Välj" button.
+            5. Ignore "Gå vidare" button, we will go to the payment page later.
+            
             ---
 
-            ## Step 8: Reserve
-            1. **Click** that slot’s “Välj” button.  
-            2. WAIT for the “Varukorg” drawer to appear showing the correct slot + 15 min timer.  
-            3. **Click** “Gå vidare” to continue
-            4. The URL will change to `https://fp.trafikverket.se/Boka/ng/reservation`, VERIFY you’re back at this page.
-            5. **Click** “Avbryt” to cancel the reservation.
-            6. The URL will change to `https://fp.trafikverket.se/Boka/ng/`, VERIFY you’re back at this page.
-
-            ## Step 9: Log Out
-            1. **Click** “Logga ut” in the header.  
-            2. WAIT for the confirmation dialog, then click “Ja, logga ut.”  
-            3. VERIFY you’re back at the landing page.
+            ## Step 8: Navigate to Meny and proceed to payment
+            1. Go to `https://fp.trafikverket.se/Boka/ng/reservation`
+            2. **Click** "Logga ut" in the header.  
+            3. WAIT for the confirmation dialog, then click "Ja, logga ut."  
+            4. VERIFY you're back at the landing page.
 
             """,
             llm=self.llm,
-            # planner_llm=planner_llm,
             message_context="Please note the official site is in Swedish, but the request from user can be in English. You will need to do some translation work. No need to scroll the page",
             browser=self.browser,
             browser_context=self.browser_context
         )
         
+        # <class 'browser_use.agent.views.AgentHistoryList'>
         result = await agent.run(max_steps=30)
-
-        print("Result!")
-        print(type(result))
-
-
+        
         # todo: this can be tested in a simple browser use test
         # print(result.urls())              # List of visited URLs
         # print(result.screenshots())       # List of screenshot paths
@@ -305,6 +293,30 @@ class BrowserService:
 
         await self.browser.close()
         return result
+
+
+    async def iterator_test(self):
+        if not self.auth_complete:
+            raise Exception("User not authenticated")
+
+        agent_go_to_booking = Agent(
+            task="""
+            Click "Meny", then in the dropdown, click "Boka prov"
+            """,
+            browser_context=self.browser_context,
+            llm=self.llm,
+        )
+
+        agent_book_b = Agent(
+            task="""
+                Select "B – Personbil"
+            """,
+            browser_context=self.browser_context,
+            llm=self.llm,
+        )
+
+        await agent_go_to_booking.run()
+        await agent_book_b.run()
 
     # todo: not in use. probably can be removed?
     async def cleanup(self):
@@ -356,5 +368,5 @@ if __name__ == "__main__":
             await asyncio.sleep(1)
 
         await browser_service.start_booking(exam_request)
-
+        # await browser_service.iterator_test()
     asyncio.run(main())

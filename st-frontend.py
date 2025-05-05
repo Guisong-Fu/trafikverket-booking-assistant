@@ -181,7 +181,7 @@ if st.session_state.confirmation_mode:
     print("Exam Request", st.session_state.exam_request)
 
     # todo: maybe we shall use LLM to write the summary
-    # st.write(create_summary(st.session_state.exam_request))
+    st.write(create_summary(st.session_state.exam_request))
 
     col1, col2 = st.columns(2)
     with col1:
