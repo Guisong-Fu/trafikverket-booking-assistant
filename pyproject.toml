@@ -1,7 +1,7 @@
 [project]
-name = "trafikverket"
+name = "trafikverket-booking-assistant"
 version = "0.1.0"
-description = "Add your description here"
+description = "AI-powered automation tool for booking Swedish driving license tests through Trafikverket's official website"
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [

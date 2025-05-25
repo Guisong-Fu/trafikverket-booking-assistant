@@ -1,74 +1,74 @@
 from pydantic import BaseModel, Field
-from typing import List, Optional, Dict, Any
+from typing import List, Optional
 
 
-
-# todo: how are thoese models used?
 class ExamRequest(BaseModel):
+    """Model for driving license exam booking request."""
+    
     license_type: str = Field(None, description="Type of license (e.g., A, A1, B, BE)")
     test_type: str = Field(
         None, description="Type of test (practical driving test or theory test)"
     )
-
     theory_test_language: Optional[str] = Field(
         default=None,
         description="Language preference for the theory test",
         examples=["Swedish", "English"]
     )
-    
-    # todo: double think of these namings
     transmission_type: Optional[str] = Field(
         default=None,
         description="Transmission type (manual or automatic)",
         examples=["manual", "automatic"]
     )
     location: List[str] = Field(
-        default_factory=list, description="Preferred test locations (up to 4)"
+        default_factory=list, 
+        description="Preferred test locations (up to 4)"
     )
-
-    # todo: double think about this. Do we need priority here?
     time_preference: List[str] = Field(
-        default_factory=list, description="Time preferences"
+        default_factory=list, 
+        description="Time preferences"
     )
 
-    # time_preference: List[Dict[str, Any]] = Field(
-    #     default_factory=lambda: [{"preference": "as early as possible"}], 
-    #     description="Time preferences with priorities"
-    # )
-
-
-# todo: double check those models. Are they really needed?
-
-# Chat messages
 class ChatMessage(BaseModel):
+    """Model for chat messages."""
+    
     role: str
     content: str
 
+
 class ChatRequest(BaseModel):
+    """Model for chat request."""
+    
     message: str
     chat_history: Optional[List[ChatMessage]] = []
 
+
 class ChatResponse(BaseModel):
+    """Model for chat response."""
+    
     message: str
     chat_history: List[ChatMessage]
     requires_confirmation: bool = False
-
     exam_request: Optional[ExamRequest] = None
 
+
 class ConfirmationRequest(BaseModel):
+    """Model for confirmation request."""
+    
     confirmed: bool
     chat_history: List[ChatMessage]
 
 
-
-
-# Browser models
 class QRResponse(BaseModel):
+    """Model for QR code response."""
+    
     success: bool
     qr_image_base64: Optional[str] = None
     auth_complete: bool = False
     message: Optional[str] = None
 
+
 class AuthStatus(BaseModel):
+    """Model for authentication status."""
+    
     auth_complete: bool
     message: Optional[str] = None

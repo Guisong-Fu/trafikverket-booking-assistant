@@ -10,7 +10,7 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 router = APIRouter()
-# todo: how would scalability work if this is instantiated here?
+# Global chatbot instance - consider using dependency injection for production
 chatbot = DriverLicenseExamBot()
 
 @router.post("/message", response_model=ChatResponse)
@@ -23,7 +23,6 @@ async def process_message(request: ChatRequest):
         logger.info(f"Chatbot response: {response}")
         
         # Convert chat history to the required format
-        # todo: the chat history is already here, then we do not really request.chat_history, right ?
         chat_history = []
         for msg in chatbot.memory.chat_memory.messages:
             if isinstance(msg, HumanMessage):
@@ -33,15 +32,12 @@ async def process_message(request: ChatRequest):
         logger.info(f"Updated chat history: {chat_history}")
         
         # Check if we need confirmation
-        # todo: is this the right way to do this?
         requires_confirmation = CONFIRMATION_PROMPT in response
         
-        # todo: do we really need to return chat history?
         return ChatResponse(
             message=response,
             chat_history=chat_history,
             requires_confirmation=requires_confirmation,
-            # todo: is this the right way to convert chatbot.collected_info to ExamRequest?
             exam_request=chatbot.collected_info if requires_confirmation else None
         )
     
@@ -54,7 +50,6 @@ async def process_message(request: ChatRequest):
 
 
 
-# todo: there is an API for that, and a specific Chat Message is generated for that. Needed?
 @router.post("/confirm", response_model=ChatResponse)
 async def confirm_booking(request: ConfirmationRequest):
     try:
@@ -70,8 +65,6 @@ async def confirm_booking(request: ConfirmationRequest):
             chatbot.collected_info = ExamRequest()
             chatbot.memory.clear()
             
-            # todo: double check this. the information is not used anywhere
-            # todo: double check this request.chat_history is needed, if not, we can further clean the code 
             return ChatResponse(
                 message="Great! I'll start the booking process. Please scan the QR code to authenticate.",
                 chat_history=request.chat_history,

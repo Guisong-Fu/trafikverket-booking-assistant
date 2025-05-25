@@ -1190,7 +1190,7 @@ wheels = [
 ]
 
 [[package]]
-name = "trafikverket"
+name = "trafikverket-booking-assistant"
 version = "0.1.0"
 source = { virtual = "." }
 dependencies = [

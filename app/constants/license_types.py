@@ -1,0 +1,28 @@
+"""Valid license types for Swedish driving tests."""
+
+VALID_LICENSE_TYPES = [
+    "A",
+    "A1", 
+    "A2",
+    "B",
+    "B96",
+    "BE",
+    "Bus",
+    "Goods",
+    "C",
+    "C1",
+    "C1E", 
+    "CE",
+    "D",
+    "D1",
+    "D1E",
+    "DE",
+    "Lorry",
+    "Train driver",
+    "Taxi",
+    "AM",
+    "Tractor",
+    "ADR",
+    "APV",
+    "VVH",
+] 

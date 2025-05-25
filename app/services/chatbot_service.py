@@ -1,10 +1,3 @@
-import sys
-from pathlib import Path
-
-# Add the project root to the Python path
-project_root = Path(__file__).parent.parent.parent
-sys.path.append(str(project_root))
-
 from typing import Dict, List, Optional, Any
 from pydantic import Field
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
@@ -20,185 +13,22 @@ import re
 
 from app.models.data_models import ExamRequest
 from app.constants.messages import CONFIRMATION_PROMPT
+from app.constants.license_types import VALID_LICENSE_TYPES
+from app.constants.locations import VALID_LOCATIONS
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# Valid license types
-VALID_LICENSE_TYPES = [
-    "A",
-    "A1",
-    "A2",
-    "B",
-    "B96",
-    "BE",
-    "Bus",
-    "Goods",
-    "C",
-    "C1",
-    "C1E",
-    "CE",
-    "D",
-    "D1",
-    "D1E",
-    "DE",
-    "Bus",
-    "Lorry",
-    "Train driver",
-    "Taxi",
-    "AM",
-    "Tractor",
-    "ADR",
-    "APV",
-    "VVH",
-]
-
 VALID_TEST_TYPES = ["practical driving test", "theory test"]
-
 VALID_TRANSMISSION_TYPES = ["manual", "automatic"]
 
-VALID_LOCATIONS = [
-    "Alingsås",
-    "Älmhult",
-    "Ånge",
-    "Ängelholm",
-    "Arjeplog",
-    "Arvidsjaur",
-    "Arvika",
-    "Avesta",
-    "Boden",
-    "Bollnäs",
-    "Borås",
-    "Borlänge",
-    "Eksjö",
-    "Enköping",
-    "Eskilstuna",
-    "Eslöv",
-    "Fagersta",
-    "Falkenberg",
-    "Falköping",
-    "Falun",
-    "Farsta",
-    "Finspång",
-    "Flen",
-    "Gällivare",
-    "Gävle",
-    "Gislaved",
-    "Göteborg Högsbo",
-    "Göteborg-Hisingen",
-    "Halmstad",
-    "Hammarstrand",
-    "Haparanda",
-    "Härnösand",
-    "Hässleholm",
-    "Hedemora",
-    "Helsingborg",
-    "HK",
-    "Hudiksvall",
-    "Järfälla",
-    "Järpen",
-    "Jokkmokk",
-    "Jönköping",
-    "Kalix",
-    "Kalmar",
-    "Karlshamn (NY)",
-    "Karlskoga",
-    "Karlskrona",
-    "Karlstad",
-    "Katrineholm",
-    "Kinna",
-    "Kiruna",
-    "Kisa",
-    "Köping",
-    "Kramfors",
-    "Kristianstad",
-    "Kristinehamn",
-    "Kumla",
-    "Kungälv",
-    "Kungsbacka",
-    "Landskrona",
-    "Lidköping",
-    "Lindesberg",
-    "Linköping",
-    "Ljungby",
-    "Ljusdal",
-    "Ludvika",
-    "Luleå",
-    "Lund",
-    "Lycksele",
-    "Lysekil",
-    "Malmö",
-    "Malung",
-    "Mariestad",
-    "Mjölby",
-    "Mora",
-    "Motala",
-    "Nässjö",
-    "Norrköping",
-    "Norrtälje 2",
-    "Nybro",
-    "Nyköping",
-    "Nynäshamn",
-    "Örebro",
-    "Örnsköldsvik",
-    "Oskarshamn",
-    "Östersund",
-    "Östhammar",
-    "Övertorneå",
-    "Pajala",
-    "Piteå",
-    "Ronneby",
-    "Säffle",
-    "Sala",
-    "Sandviken",
-    "Simrishamn",
-    "Skellefteå",
-    "Skövde",
-    "Söderhamn",
-    "Södertälje",
-    "Sollefteå",
-    "Sölvesborg",
-    "Strömstad",
-    "Strömsund",
-    "Sundsvall",
-    "Sunne",
-    "Sveg",
-    "Tranås",
-    "Trelleborg",
-    "Uddevalla",
-    "Ulricehamn",
-    "Umeå",
-    "Upplands Väsby",
-    "Uppsala",
-    "Vänersborg",
-    "Varberg",
-    "Värnamo",
-    "Västerås",
-    "Västerhaninge",
-    "Västervik",
-    "Växjö",
-    "Vetlanda",
-    "Vilhelmina",
-    "Vimmerby",
-    "Visby",
-    "Ystad",
-] 
-
-
-# todo: add language list
 
 
 
-# Language Preference: Theory tests are available in multiple languages, including English, Arabic, Somali, and more
 
 
-"""
-Let's think about the "confirmation" part. Maybe we do want to include it in this prompt, and let LLM to generate the confirmation message.
 
-6. Once all information is collected, provide a clear summary and ask for confirmation, please include "Is this information correct?" in the message
-7. After confirmation, return the data in the exact JSON format specified
-"""
 
 SYSTEM_PROMPT_TEMPLATE = """You are a friendly and efficient assistant helping users register for driver's license exams.
 
@@ -258,9 +88,7 @@ class DriverLicenseExamBot:
     def __init__(self):
         """Initialize the chatbot with OpenAI API key and model."""
 
-        # todo: double check parameters, maybe there is something more we can tweak
         self.llm = ChatOpenAI(model="gpt-4.1-mini", temperature=0.0)
-        # todo: this memory shall be upgraded to langgraph
         self.memory = ConversationBufferMemory(return_messages=True)
         self.collected_info = ExamRequest()
         self.create_agent()
@@ -279,8 +107,6 @@ class DriverLicenseExamBot:
             )
 
             # Create the prompt template
-            # todo: what is the use of this? So, all message will use this prompt?
-            # todo: tweak it if needed
             prompt = ChatPromptTemplate.from_messages(
                 [
                     ("system", system_prompt),
@@ -295,9 +121,6 @@ class DriverLicenseExamBot:
             logger.error(f"Error creating agent: {str(e)}", exc_info=True)
             raise
 
-    # todo: double check the logic here
-    # todo: language preference will need to be added here.
-    # todo: double check, how is this information being passed from LLM?
     def _validate_and_update_info(self, info: Dict[str, Any]) -> None:
         """Validate and update the collected information."""
         try:
@@ -400,7 +223,6 @@ class DriverLicenseExamBot:
 
             try:
                 # Generate response based on the conversation history
-                # todo: is this the right way to do it? write a notebook to test it
                 chain_response = self.chain.invoke(
                     {
                         "history": self.memory.load_memory_variables({})["history"],
@@ -410,7 +232,6 @@ class DriverLicenseExamBot:
                     }
                 )
 
-                # todo: is this complicated JSON parsing thing really needed?
                 # Update collected information if any new data was provided
                 try:
                     # Try to extract JSON from the response
@@ -458,7 +279,7 @@ class DriverLicenseExamBot:
 
                 # Check again if we've collected all required info after processing the response
                 # If all information is collected, generate confirmation
-                # todo: 05-02 here is the confirmation prompt! 
+                # If all information is collected, generate confirmation
                 if not self._get_missing_info():
                     response = f"Great! Now we have all information. {CONFIRMATION_PROMPT}"
                     self.memory.chat_memory.add_ai_message(response)
@@ -476,7 +297,6 @@ class DriverLicenseExamBot:
                 fallback_response = "I'm having trouble processing your request. Let me try a different approach."
                 fallback_response += "\n\nCould you please provide the following information:"
                 
-                # todo: this is just for fallback, right? Not kind of hard coded response? It's not needed right now, right?
                 for info in missing_info:
                     if info == "license_type":
                         fallback_response += "\n- What type of license are you applying for? (e.g., B, A, etc.)"
@@ -496,7 +316,6 @@ class DriverLicenseExamBot:
             raise
 
 
-    # todo: most likely, the code down below can be removed
     def get_collected_info(self) -> Dict[str, Any]:
         """Return the collected information as a dictionary."""
         try:
@@ -539,7 +358,6 @@ if __name__ == "__main__":
     print("Type 'exit' to end the conversation\n")
     
     while True:
-        # todo: what is this input? what does §you§ mean here?
         user_input = input("You: ")
         if user_input.lower() == 'exit':
             break
@@ -553,7 +371,6 @@ if __name__ == "__main__":
             if confirmation.lower() == 'yes':
                 # backend_response = bot.send_to_backend("https://api.example.com/register")
                 # print(f"\nBackend Response: {json.dumps(backend_response, indent=2)}")
-                # todo(Guisong): this never gets called
                 print("Backend response:")
                 break
             else:

@@ -29,15 +29,7 @@ class BrowserService:
             )
             self.browser = Browser(config=browser_config)
 
-            # todo: might not be needed, but I leave it here for now.
             config = BrowserContextConfig(
-                # cookies_file="path/to/cookies.json",
-                # wait_for_network_idle_page_load_time=3.0,
-                # browser_window_size={'width': 1280, 'height': 1100},
-                # locale='en-US',
-                # user_agent='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/85.0.4183.102 Safari/537.36',
-                # highlight_elements=True,
-                # viewport_expansion=500,
                 allowed_domains=['fp.trafikverket.se'],
             )
 
@@ -45,19 +37,7 @@ class BrowserService:
             await self.browser_context.get_session()
             
 
-    """
-    Here is something:
-    instead of choosing login, and show the QR, we can go to "meny" and choose "Boka prov" or "Mina prov" directly.
-    And once the login session is completed, we can just navigate around
-    https://fp.trafikverket.se/Boka/ng/licence
-    https://fp.trafikverket.se/Boka/ng/examinations
 
-    I can also use the "Boka prov" button to navigate to the booking page, and then I can use the "Mina prov" button to navigate to the examinations page.
-
-    Or, maybe I can keep the Get QR function, and after authentication, and use Controller to go to `https://fp.trafikverket.se/Boka/ng/examinations` to check if there is already booking booked.
-    However, some token will be saved though if we directly get the QR code to the examinations page.
-
-    """
 
 
 
@@ -106,7 +86,6 @@ class BrowserService:
                 if self.qr_started:
                     # Get a fresh screenshot of the QR code
                     qr_bytes = await qr_element.screenshot()
-                    # todo: maybe I should double check the QR code is the same?
                     self.current_qr_base64 = base64.b64encode(qr_bytes).decode("utf-8")
                     
             except Exception as e:
@@ -158,13 +137,7 @@ class BrowserService:
         if not self.auth_complete:
             raise Exception("User not authenticated")
 
-        # todo: need to work more on the tasks. -> "new test" and "reschedule test" is different
-
         # Create and run the agent with the browser context
-        # todo: this tasks sort of works, but it does not close the browser after finished
-
-
-        # todo: really, try with multiple agents, and with specific controller specified
 
 
         agent = Agent(
@@ -277,19 +250,9 @@ class BrowserService:
         # <class 'browser_use.agent.views.AgentHistoryList'>
         result = await agent.run(max_steps=30)
         
-        # todo: this can be tested in a simple browser use test
-        # print(result.urls())              # List of visited URLs
-        # print(result.screenshots())       # List of screenshot paths
-        # print(result.action_names())      # Names of executed actions
-        # print(result.extracted_content()) # Content extracted during execution
-        # print(result.errors())           # Any errors that occurred
-        # print(result.model_actions())     # All actions with their parameters
-
-        # print(result.final_result())
-        # print(result.is_done())
-        # print(result.has_errors())
-        # print(result.model_thoughts())
-        # print(result.action_results())
+        # Debug information available:
+        # result.urls(), result.screenshots(), result.action_names()
+        # result.extracted_content(), result.errors(), result.model_actions()
 
         await self.browser.close()
         return result
@@ -318,8 +281,8 @@ class BrowserService:
         await agent_go_to_booking.run()
         await agent_book_b.run()
 
-    # todo: not in use. probably can be removed?
     async def cleanup(self):
+        """Clean up browser resources."""
         if self.browser_context:
             await self.browser_context.close()
             self.browser_context = None 
